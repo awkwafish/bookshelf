@@ -97,6 +97,7 @@ label{display:block;font-size:13px;color:var(--muted)}label input,label select,l
 .lg-n{flex:1;min-width:0}.lg-n small{display:block;color:var(--muted);font-size:12px}.lg-v{color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .rp-tip{min-height:1.4em;margin:6px 0 0}
 @media (prefers-reduced-motion:reduce){.pie path{transition:none}}
+a.gr{color:var(--accent);font-weight:600;font-size:14px;text-underline-offset:3px}
 .note{font-size:13px;color:var(--muted);margin:8px 2px}
 dialog{width:min(520px,94vw);border:0;border-radius:14px;background:var(--card);color:var(--ink);padding:18px;max-height:92vh}
 dialog::backdrop{background:rgba(0,0,0,.5)}
@@ -121,6 +122,7 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 <dialog id="bd"><div class="fm">
 <h2 id="bt">Add a book</h2>
 <div class="row"><label>ISBN (scan the barcode or type it)<input id="f_isbn" inputmode="numeric" placeholder="978…"></label><button class="pri" data-act="scan">Scan barcode</button><button data-act="lookup">Look up</button><input id="sc_file" type="file" accept="image/*" capture="environment" class="hide"></div>
+<a id="f_gr" class="gr hide" target="_blank" rel="noopener">Open this book on Goodreads</a>
 <label>Title<input id="f_title"></label>
 <label>Author<input id="f_author"></label>
 <label>Genres (comma separated, the first is the main genre)<input id="f_genres" placeholder="Fantasy, Romance"></label>
@@ -203,6 +205,8 @@ function render(){
 }
 /* ---------- Today ---------- */
 function streak(){const s=new Set(S.log.map(l=>l.date));const d=new Date();if(!s.has(ymd(d)))d.setDate(d.getDate()-1);let n=0;while(s.has(ymd(d))){n++;d.setDate(d.getDate()-1)}return n}
+const grUrl=i=>{i=String(i||'').replace(/[^0-9Xx]/g,'');return i.length===10||i.length===13?'https://www.goodreads.com/book/isbn/'+i:''};
+function grSync(){const u=grUrl(F('isbn').value),a=$('#f_gr');a.classList.toggle('hide',!u);if(u)a.href=u}
 /* ---------- Books read tracker ---------- */
 const GC=['#666E40','#DD9A7A','#364062','#F8DD94','#3C100E'];
 let RP='year';try{RP=localStorage.getItem('bs-rp')||'year'}catch(e){}
@@ -415,7 +419,7 @@ function list(){
  <div class="tags">${b.genres.map(g=>`<span class="tag">${esc(g)}</span>`).join('')}<span class="tag st">${ST[b.status]}${b.status==='read'&&b.year?' '+b.year:''}</span></div>
  <div class="meta">${b.formats.join(', ')||'No format'} · ${b.own==='own'?'Owned':'Borrowed'+(b.from?' from '+esc(b.from):'')}${lenTxt(b)?'<br>'+lenTxt(b):''}</div>
  ${b.series||sq?`<div class="meta">${b.series?'Set: '+esc(b.series)+(b.sno?', book '+b.sno:''):''}${b.series&&sq?' · ':''}${sq?'Sequel to '+esc(sq.title):''}</div>`:''}
- ${b.status==='reading'?prog(b):''}${b.summary?`<p class="sum">${esc(b.summary)}</p>`:''}</article>`}).join(''):'<div class="empty">No books match. Use “Add book” to start your list.</div>'
+ ${b.status==='reading'?prog(b):''}${b.summary?`<p class="sum">${esc(b.summary)}</p>`:''}${grUrl(b.isbn)?`<p style="margin:8px 0 0"><a class="gr" href="${grUrl(b.isbn)}" target="_blank" rel="noopener">View on Goodreads</a></p>`:''}</article>`}).join(''):'<div class="empty">No books match. Use “Add book” to start your list.</div>'
 }
 let pend={cov:'',sp:''};
 function imgNote(){const c=pend.cov?ref(pend.cov):'';$('#f_imgs').innerHTML=(c?`<img src="${esc(c)}" alt="Cover" style="height:72px;border-radius:3px;vertical-align:middle;margin-right:8px;box-shadow:0 1px 3px rgba(0,0,0,.3)">Cover added. `:'No cover. ')+(pend.sp?'Spine photo added.':'No spine photo.')}
@@ -428,7 +432,7 @@ function openBook(id){
  $('#bt').textContent=id?'Edit book':'Add a book';
  F('title').value=b.title;F('author').value=b.author;F('genres').value=b.genres.join(', ');F('own').value=b.own;F('from').value=b.from;F('pages').value=b.pages||'';
  F('h').value=b.mins?Math.floor(b.mins/60):'';F('m').value=b.mins?b.mins%60:'';F('status').value=b.status;F('year').value=b.year||'';F('fin').value=b.fin||'';F('page').value=b.page||'';F('min').value=b.min||'';F('sum').value=b.summary;
- F('series').value=b.series||'';F('isbn').value=b.isbn||'';F('sno').value=b.sno||'';F('cov').value='';F('spn').value='';F('usesp').checked=!!b.useSpine;pend={cov:b.cover||'',sp:b.spine||''};imgNote();
+ F('series').value=b.series||'';F('isbn').value=b.isbn||'';grSync();F('sno').value=b.sno||'';F('cov').value='';F('spn').value='';F('usesp').checked=!!b.useSpine;pend={cov:b.cover||'',sp:b.spine||''};imgNote();
  $('#f_seqof').innerHTML='<option value="">Not a sequel</option>'+S.books.filter(x=>x.id!==id).sort((a,c)=>a.title.localeCompare(c.title)).map(x=>`<option value="${x.id}" ${x.id===b.sequelOf?'selected':''}>${esc(x.title)}</option>`).join('');
  $('#sl').innerHTML=[...new Set(S.books.map(x=>x.series).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join('');
  document.querySelectorAll('#f_fmts input').forEach(i=>i.checked=b.formats.includes(i.value));
@@ -566,7 +570,7 @@ async function scanPhoto(e){
   useCode(code,true)
  }catch(x){toast(camErr(x))}
 }
-const GENRES=[['Science fiction',/science.?fiction|sci-?fi|space opera|cyberpunk/i],['Dystopian',/dystopi|apocalyptic/i],['Fantasy',/fantasy|dragons|wizards|magic\b|sword and sorcery/i],['Paranormal',/paranormal|vampire|werewol|witches/i],['Mystery',/myster|detective|whodunit|crime fiction|cozy/i],['Thriller',/thriller|suspense|espionage/i],['Horror',/horror|ghost stor/i],['Romance',/romance|love stor/i],['Historical fiction',/historical fiction|fiction.*historical/i],['Literary fiction',/literary fiction|fiction.*literary|^literary$/i],['Contemporary fiction',/contemporary/i],['Adventure',/adventure|action & adventure/i],['Mythology',/myth|fairy tales|folklore|legends/i],['Young adult',/young adult|teen fiction|^teen/i],['Children’s',/^juvenile|juvenile fiction|juvenile nonfiction|children|picture book/i],['Graphic novel',/graphic novel|comics|manga/i],['Short stories',/short stor/i],['Poetry',/poetry|poems/i],['Drama',/^drama|plays/i],['Classics',/classics|classic literature/i],['LGBTQ+',/lgbt|gay|lesbian|queer|transgender/i],['Memoir',/memoir|autobiograph/i],['Biography',/biograph/i],['Essays',/essays/i],['True crime',/true crime/i],['History',/^history\b|\bhistory$/i],['Self-help',/self-help|personal growth|self-improvement/i],['Psychology',/psycholog/i],['Science',/^science(?! fiction)|popular science/i],['Nature',/^nature|natural history|animals/i],['Philosophy',/philosoph/i],['Religion',/religio|spiritual|christian|bible/i],['Politics',/politic|government/i],['Social science',/social science|sociology|anthropolog/i],['Business',/business|economics|management|finance/i],['Health',/^health|fitness|medical/i],['Cooking',/cook|recipes/i],['Crafts',/crafts|hobbies|sewing|quilt|knitting/i],['Art',/^art\b|^design|photograph/i],['Music',/^music/i],['Travel',/^travel/i],['Sports',/^sports|recreation/i],['Humor',/humor|humour/i],['Westerns',/western/i]];
+const GENRES=[['Science fiction',/science.?fiction|sci-?fi|space opera|cyberpunk/i],['Dystopian',/dystopi|apocalyptic/i],['Fantasy',/fantasy|dragons|wizards|magic\b|sword and sorcery/i],['Paranormal',/paranormal|vampire|werewol|witches/i],['Mystery',/myster|detective|whodunit|crime fiction|cozy/i],['Thriller',/thriller|suspense|espionage/i],['Horror',/horror|ghost stor/i],['Romance',/romance|love stor/i],['Historical fiction',/historical fiction|fiction.*historical/i],['Literary fiction',/literary fiction|fiction.*literary|^literary$/i],['Contemporary fiction',/contemporary/i],['Adventure',/adventure|action & adventure/i],['Mythology',/myth|fairy tales|folklore|legends/i],['Young adult',/young adult|teen fiction|^teen/i],['Children’s',/^juvenile|juvenile fiction|juvenile nonfiction|children|picture book|^kids/i],['Graphic novel',/graphic novel|comics|manga/i],['Short stories',/short stor/i],['Poetry',/poetry|poems/i],['Drama',/^drama|plays/i],['Classics',/classics|classic literature/i],['LGBTQ+',/lgbt|gay|lesbian|queer|transgender/i],['Memoir',/memoir|autobiograph/i],['Biography',/biograph/i],['Essays',/essays/i],['True crime',/true crime/i],['History',/^history\b|\bhistory$/i],['Self-help',/self-help|personal growth|self-improvement/i],['Psychology',/psycholog/i],['Science',/^science(?! fiction)|popular science/i],['Nature',/^nature|natural history|animals/i],['Philosophy',/philosoph/i],['Religion',/religio|spiritual|christian|bible/i],['Politics',/politic|government/i],['Social science',/social science|sociology|anthropolog/i],['Business',/business|economics|management|finance/i],['Health',/^health|fitness|medical/i],['Cooking',/cook|recipes/i],['Crafts',/crafts|hobbies|sewing|quilt|knitting/i],['Art',/^art\b|^design|photograph/i],['Music',/^music/i],['Travel',/^travel/i],['Sports',/^sports|recreation/i],['Humor',/humor|humour/i],['Westerns',/western/i]];
 function pickGenres(list,gcats){const out=[];for(const raw of list){for(const[g,r]of GENRES)if(r.test(raw)&&!out.includes(g))out.push(g);if(out.length>=3)break}
  if(out.length)return out.slice(0,3);
  if(list.some(x=>/non-?fiction/i.test(x)))return['Nonfiction'];
@@ -576,6 +580,7 @@ function pickFormat(d,ed){const pf=String((ed&&ed.physical_format)||'').toLowerC
  if(/hard/.test(pf))return 'hardcover';if(/paper|soft|mass market|trade/.test(pf))return 'paperback';
  if(/audio|cd|mp3/.test(pf))return 'audiobook';if(/ebook|e-book|electronic|kindle/.test(pf))return 'ebook';return 'paperback'}
 const clean=t=>String(t||'').replace(/<[^>]*>/g,' ').replace(/\(\[source\]\[\d+\]\)|\[source\].*$|-{3,}[\s\S]*$/i,'').replace(/\s+/g,' ').trim();
+const unpromo=t=>String(t||'').replace(/^(?:\s*(?:an?\s+)?(?:instant\s+|#1\s+)?(?:new york times|usa today|national|sunday times|indie|times|washington post|amazon)?[^.!]{0,40}best-?\s?sell(?:er|ing)[^.!]{0,60}[.!]\s*)+/i,'').trim();
 const short=t=>t.length>600?t.slice(0,600).replace(/\s\S*$/,'')+'…':t;
 const fj=async u=>{try{const r=await fetch(u);return r.ok?await r.json():{_err:r.status}}catch(e){return{_err:'net'}}};
 const nap=ms=>new Promise(r=>setTimeout(r,ms));
@@ -599,49 +604,89 @@ async function google(isbn){
   if(vs&&vs.seriesId){const sj=await fj(GB+'series/get?series_id='+encodeURIComponent(vs.seriesId));name=(sj.series&&sj.series[0]&&sj.series[0].title)||''}
   if(name||num)series={name,num}}
  return{vi,cats,snip:it.searchInfo&&it.searchInfo.textSnippet,series}}
+function jsonp(url,ms=9000){return new Promise(ok=>{const cb='__jp'+Math.random().toString(36).slice(2),s=document.createElement('script');let t;
+ const done=v=>{clearTimeout(t);window[cb]=()=>{};s.remove();ok(v)};
+ window[cb]=d=>done(d);t=setTimeout(()=>done(null),ms);s.onerror=()=>done(null);s.src=url+(url.includes('?')?'&':'?')+'callback='+cb;document.head.appendChild(s)})}
+const normT=t=>String(t||'').toLowerCase().replace(/\(.*?\)|:.*$/g,'').replace(/&/g,'and').replace(/[^a-z0-9]+/g,' ').replace(/^(the|a|an) /,'').trim();
+const sameBook=(a,b)=>{a=normT(a);b=normT(b);return !!a&&!!b&&(a===b||a.startsWith(b+' ')||b.startsWith(a+' '))};
+const lastName=a=>String(a||'').split(',')[0].trim().split(/\s+/).pop().toLowerCase();
+const yr=v=>+((String(v||'').match(/\d{4}/)||[0])[0]);
+const nearYear=(v,y)=>!y||!yr(v)||Math.abs(yr(v)-y)<=1;
+const oneAuthor=list=>{const s=new Set(list.map(x=>String(x||'').toLowerCase()).filter(Boolean));return s.size<=1};
+async function googleMore(title,author,year){
+ if(!title)return null;const q='intitle:'+encodeURIComponent('"'+normT(title)+'"')+(author?'+inauthor:'+encodeURIComponent(lastName(author)):'');
+ const j=await fj('https://www.googleapis.com/books/v1/volumes?maxResults=15&q='+q);
+ let vs=((j&&j.items)||[]).map(i=>i.volumeInfo||{}).filter(v=>sameBook(v.title,title)&&(!author||(v.authors||[]).some(a=>a.toLowerCase().includes(lastName(author)))));
+ if(!author&&year)vs=vs.filter(v=>nearYear(v.publishedDate,year));
+ if(!vs.length||(!author&&!oneAuthor(vs.map(v=>(v.authors||[]).join(', ')))))return null;
+ const dv=vs.filter(v=>v.description).sort((a,b)=>b.description.length-a.description.length)[0];
+ return{author:((vs.find(v=>v.authors)||{}).authors||[]).join(', '),desc:clean(dv&&dv.description),cats:[...new Set(vs.flatMap(v=>v.categories||[]))]}}
+async function apple(isbn,title,author,year){
+ const A='https://itunes.apple.com/';let r=null;
+ const j=await jsonp(A+'lookup?isbn='+isbn);if(j&&j.results&&j.results.length)r=j.results[0];
+ if(!r&&title)for(const m of['ebook','audiobook']){
+  const s=await jsonp(A+'search?term='+encodeURIComponent((normT(title)+' '+(author?lastName(author):'')).trim())+'&media='+m+'&entity='+m+'&limit=15');
+  const hits=((s&&s.results)||[]).filter(x=>sameBook(x.trackName||x.collectionName,title)&&(author?String(x.artistName||'').toLowerCase().includes(lastName(author)):nearYear(x.releaseDate,year)));
+  if(hits.length&&(author||oneAuthor(hits.map(h=>h.artistName)))){r=hits[0];break}}
+ if(!r)return null;
+ return{title:r.trackName||r.collectionName||'',author:r.artistName||'',desc:clean(r.description||r.longDescription),
+  genres:[...(r.genres||[]),r.primaryGenreName].filter(x=>x&&!/^(e?books|audiobooks)$/i.test(x)),
+  cover:(r.artworkUrl100||r.artworkUrl60||'').replace(/\/\d+x\d+(bb)?\.(jpg|png)/,'/600x600bb.jpg')}}
 async function lookup(){
- const isbn=F('isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase();
+ const isbn=F('isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase();grSync();
  if(isbn.length!==10&&isbn.length!==13)return toast('Enter or scan a 10 or 13 digit ISBN.');
  const dup=S.books.find(x=>x.isbn===isbn&&x.id!==editId);toast('Looking it up…');
  const OL='https://openlibrary.org/';
  const[g,oj,ed,sr]=await Promise.all([google(isbn),fj(OL+'api/books?bibkeys=ISBN:'+isbn+'&format=json&jscmd=data'),fj(OL+'isbn/'+isbn+'.json'),fj(OL+'search.json?isbn='+isbn+'&fields=subject,title,author_name,number_of_pages_median&limit=1')]);
  const d=g.vi||null,o=(oj&&oj['ISBN:'+isbn])||null,e=ed&&!ed._err?ed:null,doc=sr&&sr.docs&&sr.docs[0]||null;
  const wk=e&&e.works&&e.works[0]&&e.works[0].key?await fj(OL+e.works[0].key.replace(/^\//,'')+'.json'):null;
- if(!d&&!o&&!e&&!doc)return toast('No match found. You can fill the details in by hand.'+(g.err===429?' Google Books was busy, so try Look up again in a minute.':''));
+ let ap=null,gm=null;const pubY=yr((d&&d.publishedDate)||(e&&e.publish_date)||(o&&o.publish_date));
+ if(!d&&!o&&!e&&!doc){toast('Checking Apple Books…');ap=await apple(isbn,F('title').value,F('author').value);
+  if(!ap)return toast('No match found. You can fill the details in by hand.'+(g.err===429?' Google Books was busy, so try Look up again in a minute.':''))}
  const filled=[],set=(id,v,label)=>{if(v&&!String(F(id).value).trim()){F(id).value=v;filled.push(label)}};
- // series
- let title=(d&&[d.title,d.subtitle].filter(Boolean).join(': '))||(o&&o.title)||(e&&e.title)||(doc&&doc.title)||'';
+ let title=(d&&[d.title,d.subtitle].filter(Boolean).join(': '))||(o&&o.title)||(e&&e.title)||(doc&&doc.title)||(ap&&ap.title)||'';
  const fromTitle=seriesFromTitle((d&&d.title)||title);
  const olS=e&&e.series&&e.series.length?parseSeries(e.series[0]):null;
  let ser=null;
  if(g.series&&g.series.name)ser={name:g.series.name,num:g.series.num||(fromTitle&&fromTitle.num)||(olS&&olS.num)||0};
  else if(fromTitle)ser=fromTitle;else if(olS)ser={name:olS.name,num:olS.num||(g.series&&g.series.num)||0};
  if(fromTitle)title=title.replace(fromTitle.strip,'').trim();
+ let au=((d&&d.authors)||((o&&o.authors)||[]).map(a=>a.name)||[]).join(', ')||((doc&&doc.author_name)||[]).join(', ');
+ let sum=clean(d&&d.description);
+ const olRaw=[...((o&&o.subjects)||[]).map(x=>x.name),...((wk&&wk.subjects)||[]),...((doc&&doc.subject)||[])];
+ const specific=l=>l.some(x=>GENRES.some(([,r])=>r.test(String(x))));
+ // fill gaps from other editions on Google Books and from Apple Books
+ if(!au||!sum||!specific([...(g.cats||[]).flatMap(c=>c.split('/')),...olRaw])){
+  toast('Checking more sources…');
+  const t=title||F('title').value,a0=au||F('author').value;
+  gm=await googleMore(t,a0,pubY);if(gm&&!au)au=gm.author;
+  if(!ap)ap=await apple(isbn,t,au||a0,pubY);if(ap&&!au)au=ap.author}
+ const wkDesc=wk&&wk.description?clean(typeof wk.description==='string'?wk.description:wk.description.value):'';
+ sum=unpromo(sum||[ap&&ap.desc,gm&&gm.desc].map(unpromo).filter(Boolean).sort((a,b)=>b.length-a.length)[0]||wkDesc||clean(g.snip));
  set('title',title,'title');
- set('author',((d&&d.authors)||((o&&o.authors)||[]).map(a=>a.name)||[]).join(', ')||((doc&&doc.author_name)||[]).join(', '),'author');
+ set('author',au,'author');
  const pages=(d&&d.pageCount)||(o&&o.number_of_pages)||(e&&e.number_of_pages)||+(String((e&&e.pagination)||'').match(/\d{2,4}/)||[0])[0]||(doc&&doc.number_of_pages_median)||0;
  set('pages',pages||'','page count');
- const raw=[...(g.cats||[]).flatMap(c=>c.split('/')),...((o&&o.subjects)||[]).map(x=>x.name),...((wk&&wk.subjects)||[]),...((doc&&doc.subject)||[])].map(x=>String(x).trim()).filter(Boolean);
- set('genres',pickGenres(raw,g.cats).join(', '),'genre');
+ const gcats=[...(g.cats||[]),...((gm&&gm.cats)||[])];
+ const raw=[...(g.cats||[]).flatMap(c=>c.split('/')),...((ap&&ap.genres)||[]),...((gm&&gm.cats)||[]).flatMap(c=>c.split('/')),...olRaw].map(x=>String(x).trim()).filter(Boolean);
+ set('genres',pickGenres(raw,gcats.length?gcats:(ap&&ap.genres)).join(', '),'genre');
  if(ser&&ser.name){const nm=tidySeries(ser.name);if(nm&&!F('series').value.trim()){F('series').value=nm;filled.push('series')}
   if(ser.num&&!F('sno').value){F('sno').value=ser.num;filled.push('number in series')}
   const n=+F('sno').value;if(n>1&&!F('seqof').value){const prev=S.books.find(b=>b.id!==editId&&(b.series||'').toLowerCase()===F('series').value.trim().toLowerCase()&&+b.sno===n-1);if(prev){F('seqof').value=prev.id;filled.push('sequel to '+prev.title)}}}
- let sum=clean(d&&d.description);
- if(!sum&&wk&&wk.description)sum=clean(typeof wk.description==='string'?wk.description:wk.description.value);
- if(!sum)sum=clean(g.snip);
  set('sum',short(sum),'summary');
  if(!document.querySelector('#f_fmts input:checked')){const f=pickFormat(d,e);document.querySelector('#f_fmts input[value='+f+']').checked=true;filled.push('format ('+f+')')}
  syncForm();
  if(!pend.cov){const il=(d&&d.imageLinks)||{},gi=il.large||il.medium||il.thumbnail||il.smallThumbnail,ol=o&&o.cover&&(o.cover.large||o.cover.medium);
-  const cands=[...new Set([ol,'https://covers.openlibrary.org/b/isbn/'+isbn+'-L.jpg?default=false',gi&&gi.replace(/&edge=curl/,'')].filter(Boolean).map(u=>u.replace(/^http:/,'https:')))];
+  const cands=[...new Set([ol,'https://covers.openlibrary.org/b/isbn/'+isbn+'-L.jpg?default=false',gi&&gi.replace(/&edge=curl/,''),ap&&ap.cover].filter(Boolean).map(u=>u.replace(/^http:/,'https:')))];
   for(const u of cands){const c=await coverFrom(u);if(c){pend.cov=c;imgNote();filled.push('cover');break}}}
- const miss=['genre','page count','summary','series','cover'].filter(x=>!filled.includes(x)&&!(x==='genre'&&F('genres').value)&&!(x==='series'&&F('series').value));
+ const miss=['author','genre','page count','summary','series','cover'].filter(x=>!filled.includes(x)&&!(x==='genre'&&F('genres').value)&&!(x==='series'&&F('series').value)&&!(x==='author'&&F('author').value));
  toast((dup?'You already have “'+dup.title+'”. ':'')+(filled.length?'Filled in '+filled.join(', ')+'.':'Nothing new to fill in.')+(miss.length?' Not found: '+miss.join(', ')+'.':'')+(g.err===429?' Google Books was busy, so Look up again in a minute may find more.':''))
 }
-$('#scd').addEventListener('close',scStop);$('#sc_file').onchange=scanPhoto;
+$('#scd').addEventListener('close',scStop);$('#sc_file').onchange=scanPhoto;F('isbn').addEventListener('input',grSync);
 /* ---------- Events ---------- */
 document.addEventListener('click',e=>{
  const g=s=>e.target.closest(s);let x;
+ if(g('a[href]'))return;
  if(x=g('[data-rp]')){RP=x.dataset.rp;try{localStorage.setItem('bs-rp',RP)}catch(e){}vToday();return}
  if(x=g('.pie path')){rpTip(x.dataset.sl);return}
  if(x=g('[data-tab]')){view=x.dataset.tab;render();return}
