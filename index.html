@@ -84,6 +84,19 @@ label{display:block;font-size:13px;color:var(--muted)}label input,label select,l
 .f2 .mt{background:#F0E1BE;padding:calc(var(--u)*.18)}.f2 img{display:block;object-fit:contain}
 .rib{width:calc(var(--u)*.3);height:calc(var(--u)*.85);right:calc(var(--u)*.15)}
 
+.rp-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.seg{display:flex;gap:4px}.seg button{padding:4px 12px;font-size:14px}
+.rp-big{margin:10px 0 6px;color:var(--muted)}.rp-big b{font:700 32px/1 Fraunces,Georgia,serif;color:var(--ink);margin-right:4px}
+.rp-body{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.pie{width:min(220px,100%);flex:none;overflow:visible}
+.pie path{stroke:var(--card);stroke-width:2;stroke-linejoin:round;cursor:pointer;transition:opacity .15s}.pie path.dim{opacity:.4}
+.pie path:focus-visible{outline:none;stroke:var(--ink)}
+.rp-side{flex:1 1 180px;min-width:0}
+.rp-lg{list-style:none;margin:0;padding:0}.rp-lg li{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:14px}
+.rp-lg li:first-child{border-top:0}.rp-lg svg{flex:none;margin-top:3px}
+.lg-n{flex:1;min-width:0}.lg-n small{display:block;color:var(--muted);font-size:12px}.lg-v{color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.rp-tip{min-height:1.4em;margin:6px 0 0}
+@media (prefers-reduced-motion:reduce){.pie path{transition:none}}
 .note{font-size:13px;color:var(--muted);margin:8px 2px}
 dialog{width:min(520px,94vw);border:0;border-radius:14px;background:var(--card);color:var(--ink);padding:18px;max-height:92vh}
 dialog::backdrop{background:rgba(0,0,0,.5)}
@@ -123,7 +136,7 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 <div class="row"><label id="r_pages">Page count<input id="f_pages" type="number" min="0"></label>
 <label id="r_len">Audio length (hours)<input id="f_h" type="number" min="0"></label><label id="r_len2">minutes<input id="f_m" type="number" min="0" max="59"></label></div>
 <div class="row"><label>Reading status<select id="f_status"><option value="backlog">To read</option><option value="reading">Reading now</option><option value="read">Read</option></select></label>
-<label id="r_year">Year read<input id="f_year" type="number" min="1900" max="2100"></label></div>
+<label id="r_year">Year read<input id="f_year" type="number" min="1900" max="2100"></label><label id="r_fin">Date finished<input id="f_fin" type="date"></label></div>
 <div class="row" id="r_prog"><label>Now on page<input id="f_page" type="number" min="0"></label><label>Minutes listened so far<input id="f_min" type="number" min="0"></label></div>
 <label>Summary<textarea id="f_sum" rows="3"></textarea></label>
 <div class="row"><button class="pri" data-act="save">Save book</button><button data-act="close">Cancel</button><span class="sp"></span><button class="danger hide" id="f_del" data-act="del">Delete</button></div>
@@ -190,6 +203,38 @@ function render(){
 }
 /* ---------- Today ---------- */
 function streak(){const s=new Set(S.log.map(l=>l.date));const d=new Date();if(!s.has(ymd(d)))d.setDate(d.getDate()-1);let n=0;while(s.has(ymd(d))){n++;d.setDate(d.getDate()-1)}return n}
+/* ---------- Books read tracker ---------- */
+const GC=['#666E40','#DD9A7A','#364062','#F8DD94','#3C100E'];
+let RP='year';try{RP=localStorage.getItem('bs-rp')||'year'}catch(e){}
+const RPN={all:'all time',year:'this year',month:'this month'};
+function readIn(p){const n=new Date(),y=String(n.getFullYear()),m=today().slice(0,7);
+ return S.books.filter(b=>b.status==='read'&&(p==='all'||(p==='year'?(b.fin?b.fin.startsWith(y):String(b.year)===y):!!b.fin&&b.fin.startsWith(m))))}
+function genreSlots(){const c={};S.books.filter(b=>b.status==='read').forEach(b=>{const g=mainG(b);c[g]=(c[g]||0)+1});
+ const ord=Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b)),m={};ord.forEach((g,i)=>m[g]=i<GC.length?i:-1);return m}
+function slicePath(a0,a1,r){if(a1-a0>=Math.PI*2-1e-6)return `M100 ${100-r}A${r} ${r} 0 1 1 99.99 ${100-r}Z`;
+ const p=a=>[100+r*Math.sin(a),100-r*Math.cos(a)].map(v=>v.toFixed(2)).join(' ');return `M100 100L${p(a0)}A${r} ${r} 0 ${a1-a0>Math.PI?1:0} 1 ${p(a1)}Z`}
+function readPanel(){
+ const list=readIn(RP),slots=genreSlots(),cnt={};list.forEach(b=>{const g=mainG(b);cnt[g]=(cnt[g]||0)+1});
+ const n=list.length,groups={};
+ Object.keys(cnt).forEach(g=>{const s=slots[g];const k=s>=0?'s'+s:'other';(groups[k]=groups[k]||{slot:s>=0?s:99,names:[],n:0}).names.push(g);groups[k].n+=cnt[g]});
+ const sl=Object.values(groups).sort((a,b)=>a.slot-b.slot);
+ const fill=s=>s.slot<99?GC[s.slot]:'url(#rp-other)',label=s=>s.slot<99?s.names[0]:'Other',pct=v=>Math.round(v/n*100)+'%';
+ let a=0;const paths=sl.map(s=>{const a1=a+s.n/n*Math.PI*2,d=slicePath(a,a1,92);a=a1;return `<path d="${d}" fill="${fill(s)}" data-sl="${esc(label(s))}: ${s.n} ${s.n===1?'book':'books'}, ${pct(s.n)}${s.slot<99?'':' ('+esc(s.names.join(', '))+')'}" tabindex="0"></path>`}).join('');
+ const sw=s=>`<svg width="14" height="14" aria-hidden="true"><rect width="14" height="14" rx="3" fill="${fill(s)}" stroke="var(--muted)" stroke-width=".75"/></svg>`;
+ const legend=sl.map(s=>s.slot<99?`<li data-sl-k="${esc(label(s))}">${sw(s)}<span class="lg-n">${esc(label(s))}</span><span class="lg-v">${s.n} · ${pct(s.n)}</span></li>`
+  :`<li>${sw(s)}<span class="lg-n">Other<small>${s.names.map(g=>esc(g)+' '+cnt[g]).join(', ')}</small></span><span class="lg-v">${s.n} · ${pct(s.n)}</span></li>`).join('');
+ const undated=RP==='month'?S.books.filter(b=>b.status==='read'&&!b.fin&&String(b.year)===String(new Date().getFullYear())).length:0;
+ return `<div class="panel rp"><div class="rp-h"><h2>Books read</h2><div class="seg" role="group" aria-label="Time period">${['all','year','month'].map(k=>`<button data-rp="${k}" class="${RP===k?'on':''}" aria-pressed="${RP===k}">${k==='all'?'All time':k==='year'?'This year':'This month'}</button>`).join('')}</div></div>
+ <p class="rp-big"><b>${n}</b> ${n===1?'book':'books'} read ${RPN[RP]}</p>
+ ${n?`<div class="rp-body"><svg class="pie" viewBox="0 0 200 200" role="img" aria-label="Books read ${RPN[RP]} by genre"><defs><pattern id="rp-other" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#CEAC84"/><rect width="3" height="8" fill="#5E4536"/></pattern></defs>${paths}<circle cx="100" cy="100" r="92.5" fill="none" stroke="var(--muted)" stroke-width="1" opacity=".55"/></svg>
+ <div class="rp-side"><ul class="rp-lg">${legend}</ul><p class="rp-tip note" aria-live="polite">Tap a slice to see its count.</p></div></div>
+ <p class="note" style="margin:6px 0 0">Each book counts once, under its first genre.${undated?` ${undated} ${undated===1?'book':'books'} read this year ${undated===1?'has':'have'} no finish date, so ${undated===1?'it isn’t':'they aren’t'} counted here. Add a date finished to include ${undated===1?'it':'them'}.`:''}</p>`
+ :`<div class="empty">${RP==='all'?'Mark a book as Read and it will show up here.':'No books finished '+RPN[RP]+' yet. Mark a book as Read to add it.'}</div>`}</div>`
+}
+function rpTip(t){const e=document.querySelector('.rp-tip');if(e)e.textContent=t}
+document.addEventListener('pointerover',e=>{const p=e.target.closest&&e.target.closest('.pie path');if(p){rpTip(p.dataset.sl);document.querySelectorAll('.pie path').forEach(x=>x.classList.toggle('dim',x!==p))}});
+document.addEventListener('pointerout',e=>{if(e.target.closest&&e.target.closest('.pie path')){document.querySelectorAll('.pie path').forEach(x=>x.classList.remove('dim'))}});
+document.addEventListener('focusin',e=>{const p=e.target.closest&&e.target.closest('.pie path');if(p)rpTip(p.dataset.sl)});
 function vToday(){
  const t=today(),open=S.books.filter(b=>b.status!=='read').sort((a,b)=>(a.status==='reading'?0:1)-(b.status==='reading'?0:1));
  const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(ymd(d))}
@@ -197,6 +242,7 @@ function vToday(){
  const reading=S.books.filter(b=>b.status==='reading');
  const recent=[...S.log].sort((a,b)=>b.date.localeCompare(a.date)||0).slice(0,8);
  $('#app').innerHTML=`<div class="stats"><div class="stat"><b>${streak()}</b><span>day reading streak</span></div><div class="stat"><b>${wp}</b><span>pages in the last 7 days</span></div><div class="stat"><b>${fmM(wm)}</b><span>listened in the last 7 days</span></div></div>
+ ${readPanel()}
  <div class="panel"><h2>Log today’s reading</h2>${open.length?`<div class="row"><label>Book<select id="l_book">${open.map(b=>`<option value="${b.id}">${esc(b.title)}</option>`).join('')}</select></label>
  <label>What did you do?<select id="l_unit"><option value="pages">Read pages</option><option value="now">Now on page</option><option value="mins">Listened minutes</option></select></label>
  <label>Amount<input id="l_amt" type="number" min="0" inputmode="numeric"></label><label>Date<input id="l_date" type="date" value="${t}"></label>
@@ -216,7 +262,7 @@ function logIt(){
  else{e.mins=a;b.min=(b.min||0)+a}
  S.log.push(e);let msg='Logged.';
  if(b.status==='backlog')b.status='reading';
- if(frac(b)>=1&&b.status!=='read'){b.status='read';b.year=new Date().getFullYear();msg='Finished '+b.title+'!'}
+ if(frac(b)>=1&&b.status!=='read'){b.status='read';b.fin=date;b.year=+date.slice(0,4);msg='Finished '+b.title+'!'}
  save();toast(msg);vToday()
 }
 /* ---------- Library ---------- */
@@ -236,7 +282,7 @@ function syncForm(){
  $('#r_from').classList.toggle('hide',F('own').value!=='borrowed');
  $('#r_pages').classList.toggle('hide',!fm.some(x=>x!=='audiobook'));
  $('#r_len').classList.toggle('hide',!fm.includes('audiobook'));$('#r_len2').classList.toggle('hide',!fm.includes('audiobook'));
- $('#r_year').classList.toggle('hide',st!=='read');$('#r_prog').classList.toggle('hide',st!=='reading')
+ $('#r_year').classList.toggle('hide',st!=='read');$('#r_fin').classList.toggle('hide',st!=='read');$('#r_prog').classList.toggle('hide',st!=='reading')
 }
 /* ---------- OneDrive sync ---------- */
 const sk=b=>(b.series||b.title)+'|'+String(b.sno||0).padStart(4,'0')+'|'+b.title;
@@ -381,7 +427,7 @@ function openBook(id){
  editId=id||null;const b=S.books.find(x=>x.id===id)||{title:'',author:'',genres:[],formats:[],own:'own',from:'',pages:'',mins:0,status:'backlog',year:'',summary:'',page:'',min:''};
  $('#bt').textContent=id?'Edit book':'Add a book';
  F('title').value=b.title;F('author').value=b.author;F('genres').value=b.genres.join(', ');F('own').value=b.own;F('from').value=b.from;F('pages').value=b.pages||'';
- F('h').value=b.mins?Math.floor(b.mins/60):'';F('m').value=b.mins?b.mins%60:'';F('status').value=b.status;F('year').value=b.year||'';F('page').value=b.page||'';F('min').value=b.min||'';F('sum').value=b.summary;
+ F('h').value=b.mins?Math.floor(b.mins/60):'';F('m').value=b.mins?b.mins%60:'';F('status').value=b.status;F('year').value=b.year||'';F('fin').value=b.fin||'';F('page').value=b.page||'';F('min').value=b.min||'';F('sum').value=b.summary;
  F('series').value=b.series||'';F('isbn').value=b.isbn||'';F('sno').value=b.sno||'';F('cov').value='';F('spn').value='';F('usesp').checked=!!b.useSpine;pend={cov:b.cover||'',sp:b.spine||''};imgNote();
  $('#f_seqof').innerHTML='<option value="">Not a sequel</option>'+S.books.filter(x=>x.id!==id).sort((a,c)=>a.title.localeCompare(c.title)).map(x=>`<option value="${x.id}" ${x.id===b.sequelOf?'selected':''}>${esc(x.title)}</option>`).join('');
  $('#sl').innerHTML=[...new Set(S.books.map(x=>x.series).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join('');
@@ -394,7 +440,11 @@ function saveBook(){
  const o={title,author:F('author').value.trim(),genres:F('genres').value.split(',').map(x=>x.trim()).filter(Boolean),formats:fm,own:F('own').value,from:F('own').value==='borrowed'?F('from').value.trim():'',
  pages:fm.some(x=>x!=='audiobook')?+F('pages').value||0:0,mins:fm.includes('audiobook')?(+F('h').value||0)*60+(+F('m').value||0):0,status:F('status').value,year:F('status').value==='read'?(+F('year').value||''):'',
  page:+F('page').value||0,min:+F('min').value||0,summary:F('sum').value.trim(),isbn:F('isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase(),series:F('series').value.trim(),sno:+F('sno').value||0,sequelOf:F('seqof').value,cover:pend.cov,spine:pend.sp,useSpine:F('usesp').checked&&!!pend.sp};
- if(o.status==='read'&&!o.year)o.year=new Date().getFullYear();
+ const prevB=editId&&S.books.find(x=>x.id===editId),thisY=new Date().getFullYear();
+ o.fin=o.status==='read'?F('fin').value:'';
+ if(o.status==='read'&&!o.fin&&(!prevB||prevB.status!=='read')&&(!o.year||o.year===thisY))o.fin=today();
+ if(o.fin)o.year=+o.fin.slice(0,4);
+ if(o.status==='read'&&!o.year)o.year=thisY;
  if(editId){Object.assign(S.books.find(x=>x.id===editId),o,{sample:false})}else S.books.push(Object.assign({id:uid()},o));
  save();$('#bd').close();render();toast('Saved.')
 }
@@ -592,6 +642,8 @@ $('#scd').addEventListener('close',scStop);$('#sc_file').onchange=scanPhoto;
 /* ---------- Events ---------- */
 document.addEventListener('click',e=>{
  const g=s=>e.target.closest(s);let x;
+ if(x=g('[data-rp]')){RP=x.dataset.rp;try{localStorage.setItem('bs-rp',RP)}catch(e){}vToday();return}
+ if(x=g('.pie path')){rpTip(x.dataset.sl);return}
  if(x=g('[data-tab]')){view=x.dataset.tab;render();return}
  if(x=g('[data-mode]')){mode=x.dataset.mode;vShelf();return}
  if(x=g('[data-ta]')){trAct(x.dataset.ta);return}
@@ -611,7 +663,7 @@ document.addEventListener('click',e=>{
  }
 });
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.card,.frm')){e.preventDefault();e.target.click()}});
-['f_own','f_status'].forEach(i=>$('#'+i).onchange=syncForm);$('#f_fmts').onchange=syncForm;
+['f_own','f_status'].forEach(i=>$('#'+i).onchange=syncForm);$('#f_fin').onchange=e=>{if(e.target.value)F('year').value=e.target.value.slice(0,4)};$('#f_fmts').onchange=syncForm;
 F('cov').onchange=async e=>{const f=e.target.files[0];if(!f)return;toast('Adding photo…');try{pend.cov=await up(f,500);imgNote()}catch(x){toast('That image could not be read.')}};
 F('spn').onchange=async e=>{const f=e.target.files[0];if(!f)return;toast('Adding photo…');try{pend.sp=await up(f,420);F('usesp').checked=true;imgNote()}catch(x){toast('That image could not be read.')}};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&acct)pull()});addEventListener('online',()=>{if(acct)pull()});if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});norm();loadImgs().then(render);od();
