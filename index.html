@@ -72,8 +72,13 @@ label{display:block;font-size:13px;color:var(--muted)}label input,label select,l
 .p2{width:calc(var(--u)*2.8);border-radius:calc(var(--u)*.4);border:max(2px,calc(var(--u)*.12)) solid #1C2A12;display:grid;place-items:center;padding:calc(var(--u)*.55) calc(var(--u)*.15) calc(var(--u)*.3);overflow:hidden}
 .p2 .nt{position:absolute;top:calc(var(--u)*.12);left:50%;width:calc(var(--u)*.7);height:calc(var(--u)*.16);margin-left:calc(var(--u)*-.35);border-radius:3px;background:#1C2A12}
 .p2 span{font-family:Figtree,sans-serif;font-weight:600;font-size:max(8px,calc(var(--u)*.4));line-height:1.15;text-align:center;overflow:hidden;max-height:100%;word-break:break-word}
-.d2{flex:none;width:calc(var(--u)*.75);background:#F0E1BE;border-top:calc(var(--u)*.14) solid #CEAC84;border-radius:2px 2px 0 0;display:flex;justify-content:center;padding-top:calc(var(--u)*.3);box-shadow:calc(var(--u)*.04) 0 calc(var(--u)*.08) rgba(0,0,0,.45);overflow:hidden}
-.d2 span{writing-mode:vertical-rl;font-family:Fraunces,Georgia,serif;font-weight:600;font-size:max(8px,calc(var(--u)*.42));color:#382514;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d2{flex:none;width:0;align-self:stretch;position:relative;z-index:3}
+.hg{position:absolute;top:0;left:calc(var(--u)*.08);padding-top:calc(var(--u)*.5);pointer-events:none}
+.hg .st{position:absolute;top:0;width:1.5px;height:calc(var(--u)*.56);background:#d8bf94;box-shadow:0 0 1px rgba(0,0,0,.5)}
+.hg .st::before{content:"";position:absolute;top:calc(var(--u)*.06);left:calc(var(--u)*-.06);width:calc(var(--u)*.13);height:calc(var(--u)*.13);border-radius:50%;background:#b08a5e;box-shadow:0 1px 1px rgba(0,0,0,.6)}
+.hg .st.l{left:22%}.hg .st.r{right:22%}
+.sg{position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(var(--u)*6);background:linear-gradient(#ddbf96,#CEAC84 60%,#bf9b70);border:1px solid #9A7A62;border-radius:calc(var(--u)*.12);padding:calc(var(--u)*.07) calc(var(--u)*.24);box-shadow:0 calc(var(--u)*.08) calc(var(--u)*.16) rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.35);font-family:Fraunces,Georgia,serif;font-weight:600;font-size:max(9px,calc(var(--u)*.42));line-height:1.2;color:#382514}
+.sp2{flex:none;display:block}
 .f2{position:relative;flex:none;align-self:flex-start;margin:calc(var(--u)*.6) calc(var(--u)*.1) 0;padding:calc(var(--u)*.22);background:#CEAC84;border:2px solid #9A7A62;box-shadow:0 4px 7px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.25);cursor:pointer}
 .f2::before{content:"";position:absolute;top:calc(var(--u)*-.35);left:50%;width:calc(var(--u)*.25);height:calc(var(--u)*.25);margin-left:calc(var(--u)*-.12);border-radius:50%;background:#CEAC84;box-shadow:0 1px 2px rgba(0,0,0,.6)}
 .f2 .mt{background:#F0E1BE;padding:calc(var(--u)*.18)}.f2 img{display:block;object-fit:contain}
@@ -410,12 +415,14 @@ function piece(p,capH){
  return `<button class="p2" style="height:${U(Math.min(capH-.35,5.8))};background:${cv?`url('${cv}') center/cover`:col(b)}" data-edit="${b.id}" title="${tt} (ebook)"><b class="nt"></b>${cv?'':`<span>${t}</span>`}${rib}</button>`
 }
 function mk(list){
- const out=[];let g=null,buf=[];
- const fl=()=>{if(buf.length){const c=buf;out.push({w:4.2,html:h=>'<div class="k2">'+c.map(p=>piece(p,h)).join('')+'</div>'});buf=[]}};
+ const out=[];let g=null,buf=[],gw=0,sw=0;
+ const add=it=>{out.push(it);gw+=it.w};
+ const fl=()=>{if(buf.length){const c=buf;add({w:4.2,html:h=>'<div class="k2">'+c.map(p=>piece(p,h)).join('')+'</div>'});buf=[]}};
+ const close=()=>{fl();if(g!==null&&gw<sw){const w=sw-gw;add({w,html:()=>`<i class="sp2" style="width:${U(w)}"></i>`})}};
  list.forEach(p=>{const G=mainG(p.b);
-  if(G!==g){fl();g=G;out.push({div:1,w:.85,html:h=>`<div class="d2" style="height:${U(Math.min(h-1,h<8?3.8:5.5))}"><span>${esc(G)}</span></div>`})}
-  if(p.kind==='tape'){buf.push(p);if(buf.length===2)fl()}else{fl();out.push({w:p.kind==='book'?bwid(p):2.9,html:h=>piece(p,h)})}});
- fl();return out
+  if(G!==g){close();g=G;gw=0;sw=Math.min(6.2,1+G.length*.25);out.push({div:1,w:0,html:h=>`<div class="d2" aria-hidden="true"><div class="hg"><i class="st l"></i><i class="st r"></i><div class="sg">${esc(G)}</div></div></div>`})}
+  if(p.kind==='tape'){buf.push(p);if(buf.length===2)fl()}else{fl();add({w:p.kind==='book'?bwid(p):2.9,html:h=>piece(p,h)})}});
+ close();return out
 }
 function streams(){
  const big=[],sm=[],ord={tape:0,phone:1},gk=(a,b)=>mainG(a.b).localeCompare(mainG(b.b));
@@ -447,7 +454,7 @@ function vShelf(){
   cases+=`<div class="bc" style="--u:${px}px;width:${W}px;height:${H}px">${cbs}</div>`}
  $('#app').innerHTML=`<div class="bar"><label class="pri" style="flex:1 1 140px;text-align:center;cursor:pointer;border-radius:999px;padding:6px 14px;background:var(--accent);color:var(--on);font-size:15px">Add a picture frame<input id="tfile" type="file" accept="image/*" class="hide"></label></div>
  <div class="bcw">${cases}</div>
- <p class="note">Books stand on the top two shelves and audiobooks and ebooks on the bottom shelf, sorted by main genre with a divider card for each genre. Sets stay together with their number on the spine. Tape piles are two high. A yellow ribbon marks a book you are reading now. Tap a picture frame to choose its shelf and where it hangs. On a phone, scroll sideways to see the whole bookcase.</p>`;
+ <p class="note">Books stand on the top two shelves and audiobooks and ebooks on the bottom shelf, sorted by main genre with a little sign hanging over each genre. Sets stay together with their number on the spine. Tape piles are two high. A yellow ribbon marks a book you are reading now. Tap a picture frame to choose its shelf and where it hangs. On a phone, scroll sideways to see the whole bookcase.</p>`;
  $('#tfile').onchange=addTrinket
 }
 async function addTrinket(e){const f=e.target.files[0];if(!f)return;try{const src=await up(f,320,1);S.trinkets.push({id:uid(),src,cb:0,side:'M',in:4.5});save();vShelf();toast('Frame added. Tap it to choose where it hangs.')}catch(err){toast('That image could not be read.')}}
