@@ -239,7 +239,6 @@ const RU=()=>location.origin+location.pathname.replace(/index\.html$/,'');
 let M=null,acct=null,cloudTag='',pt=null;
 const PATH='/me/drive/root:/Apps/MyBookshelf/bookshelf.json',SC=['Files.ReadWrite'];
 function persist(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){toast('This browser’s storage is full.')}}
-function save(){S.ts=Date.now();persist();if(acct){clearTimeout(pt);pt=setTimeout(push,1500)}}
 async function token(){
  try{return(await M.acquireTokenSilent({scopes:SC,account:acct})).accessToken}
  catch(e){if(!navigator.onLine)throw e;await M.acquireTokenRedirect({scopes:SC,account:acct});return null}
@@ -257,31 +256,57 @@ async function od(login){
   await pull()
  }catch(e){cs('OneDrive sign-in problem: '+(e.errorMessage||e.message||'unknown error')+'.')}
 }
+function oConn(){const v=$('#o_cid').value.trim();if(!v)return toast('Paste your client ID first.');localStorage.setItem('bs-cid',v);$('#odd').close();od(true)}
+function oOut(){if(M&&acct)M.logoutRedirect({account:acct});else toast('Not connected.')}
+/* ---------- Per-book merge sync ---------- */
+let KN=new Set();const LS={};
+const strip=it=>JSON.stringify(it,(k,v)=>k==='u'?undefined:v);
+const sig=x=>JSON.stringify(['books','log','trinkets'].map(k=>(x[k]||[]).map(i=>i.id+':'+(i.u||0)).sort()).concat([Object.entries(x.del||{}).map(e=>e.join(':')).sort()]));
+function norm(){S.del=S.del||{};KN=new Set();for(const k of['books','log','trinkets'])for(const it of S[k]){if(it.u==null)it.u=S.ts||1;LS[it.id]=strip(it);KN.add(it.id)}}
+function merge(a,b){
+ const del=Object.assign({},b.del||{}),out={books:[],log:[],trinkets:[],del};
+ for(const id in(a.del||{}))del[id]=Math.max(del[id]||0,a.del[id]);
+ for(const k of['books','log','trinkets']){const m=new Map();
+  [...(b[k]||[]),...(a[k]||[])].forEach(it=>{const o=m.get(it.id);if(!o||(it.u||0)>=(o.u||0))m.set(it.id,it)});
+  out[k]=[...m.values()].filter(it=>!(del[it.id]>=(it.u||0)))}
+ const cut=Date.now()-90*864e5;for(const id in del)if(del[id]<cut)delete del[id];
+ out.ts=Math.max(a.ts||0,b.ts||0);return out
+}
+function save(){
+ const now=Date.now(),cur=new Set();
+ for(const k of['books','log','trinkets'])for(const it of S[k]){cur.add(it.id);const s=strip(it);if(it.u==null||LS[it.id]!==s){it.u=now;LS[it.id]=strip(it)}}
+ S.del=S.del||{};for(const id of KN)if(!cur.has(id)){S.del[id]=now;delete LS[id]}
+ KN=cur;S.ts=now;persist();
+ if(acct){clearTimeout(pt);pt=setTimeout(push,1500)}
+}
 async function pull(){
  if(!acct)return toast('Connect OneDrive first.');
  try{
   cs('Checking OneDrive…');const r=await gr(PATH);if(!r)return;
-  if(r.status===404){await push();return}
+  if(r.status===404){await push(true);return}
   if(!r.ok)throw new Error(r.status);
   const m=await r.json();
   if(m.eTag!==cloudTag){
-   const c=await gr(PATH+':/content');if(!c)return;const d=await c.json();
-   if((d.ts||0)>(S.ts||0)){S={books:d.books||[],trinkets:d.trinkets||[],log:d.log||[],ts:d.ts};persist();render()}
-   else if((d.ts||0)<(S.ts||0)){await push();return}
-   cloudTag=m.eTag}
+   const c=await gr(PATH+':/content');if(!c)return;const d=await c.json(),before=sig(S);
+   if(d.del)S=merge(S,d);else if((d.ts||0)>(S.ts||0))S={books:d.books||[],trinkets:d.trinkets||[],log:d.log||[],ts:d.ts};
+   norm();persist();if(sig(S)!==before)render();
+   cloudTag=m.eTag;
+   if(sig(S)!==sig(d)){await push(true);return}}
   await getImgs();cs('Synced with OneDrive at '+tm()+'.')
  }catch(e){cs('Couldn’t reach OneDrive. Changes stay in this browser.')}
 }
-async function push(){
+async function push(force){
  if(!acct)return;
- try{if(!S.ts){S.ts=Date.now();persist()}await putImgs();
-  const r=await gr(PATH+':/content',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(S)});
-  if(!r)return;if(!r.ok)throw new Error(r.status);
+ try{
+  await putImgs();
+  const r0=await gr(PATH);
+  if(r0&&r0.ok){const m0=await r0.json();if(m0.eTag!==cloudTag&&force!==true){await pull();return}}
+  const h={'Content-Type':'application/json'};if(cloudTag)h['If-Match']=cloudTag;
+  const r=await gr(PATH+':/content',{method:'PUT',headers:h,body:JSON.stringify(S)});
+  if(!r)return;if(r.status===412){await pull();return}if(!r.ok)throw new Error(r.status);
   const m=await r.json();cloudTag=m.eTag;cs('Saved to OneDrive at '+tm()+'.')
  }catch(e){cs('OneDrive save failed. Your changes are kept in this browser and will retry on the next change.')}
 }
-function oConn(){const v=$('#o_cid').value.trim();if(!v)return toast('Paste your client ID first.');localStorage.setItem('bs-cid',v);$('#odd').close();od(true)}
-function oOut(){if(M&&acct)M.logoutRedirect({account:acct});else toast('Not connected.')}
 /* ---------- Photos: cached on each device, stored as separate OneDrive files ---------- */
 const URLS={},UP=new Set(JSON.parse(localStorage.getItem('bs-up')||'[]'));
 const IDB=()=>new Promise((ok,no)=>{const r=indexedDB.open('bs-img',1);r.onupgradeneeded=()=>r.result.createObjectStore('i');r.onsuccess=()=>ok(r.result);r.onerror=no});
@@ -470,7 +495,7 @@ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.tar
 ['f_own','f_status'].forEach(i=>$('#'+i).onchange=syncForm);$('#f_fmts').onchange=syncForm;
 F('cov').onchange=async e=>{const f=e.target.files[0];if(!f)return;toast('Adding photo…');try{pend.cov=await up(f,500);imgNote()}catch(x){toast('That image could not be read.')}};
 F('spn').onchange=async e=>{const f=e.target.files[0];if(!f)return;toast('Adding photo…');try{pend.sp=await up(f,420);F('usesp').checked=true;imgNote()}catch(x){toast('That image could not be read.')}};
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&acct)pull()});addEventListener('online',()=>{if(acct)pull()});if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});loadImgs().then(()=>{render();od()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&acct)pull()});addEventListener('online',()=>{if(acct)pull()});if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});norm();loadImgs().then(()=>{render();od()});
 render();
 </script>
 </body>
