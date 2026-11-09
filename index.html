@@ -102,7 +102,7 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 
 <dialog id="bd"><div class="fm">
 <h2 id="bt">Add a book</h2>
-<div class="row"><label>ISBN (scan the barcode or type it)<input id="f_isbn" inputmode="numeric" placeholder="978…"></label><button class="pri" data-act="scan">Scan barcode</button><button data-act="lookup">Look up</button></div>
+<div class="row"><label>ISBN (scan the barcode or type it)<input id="f_isbn" inputmode="numeric" placeholder="978…"></label><button class="pri" data-act="scan">Scan barcode</button><button data-act="lookup">Look up</button><input id="sc_file" type="file" accept="image/*" capture="environment" class="hide"></div>
 <label>Title<input id="f_title"></label>
 <label>Author<input id="f_author"></label>
 <label>Genres (comma separated, the first is the main genre)<input id="f_genres" placeholder="Fantasy, Romance"></label>
@@ -134,11 +134,13 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 <dialog id="odd"><div class="fm">
 <h2>OneDrive sync</h2>
 <p class="note" style="margin:0">Your library is saved as one file in OneDrive at Apps/MyBookshelf/bookshelf.json. Every device you connect shows the same shelves.</p>
+<label>Account type<select id="o_auth"><option value="common">Personal and work accounts (most registrations)</option><option value="consumers">Personal Microsoft accounts only</option><option value="organizations">Work or school accounts only</option></select></label>
 <label>Azure app client ID<input id="o_cid" placeholder="00000000-0000-0000-0000-000000000000" autocomplete="off"></label>
+<p id="o_st" role="status" style="margin:0;padding:8px 10px;border-radius:8px;background:var(--bg);font-weight:600"></p>
 <p class="note" style="margin:0">Register this exact address as a single-page app redirect link: <b id="o_ru"></b></p>
-<div class="row"><button class="pri" data-act="oconn">Save and connect</button><button data-act="osync">Sync now</button><button data-act="oout">Sign out</button><button data-act="close">Close</button></div>
+<div class="row"><button class="pri" data-act="oconn">Save and connect</button><button data-act="osync">Sync now</button><button data-act="oout">Sign out</button><button data-act="oreset">Reset sign-in</button><button data-act="close">Close</button></div>
 </div></dialog>
-<dialog id="scd"><div class="fm"><h2>Scan a barcode</h2><video id="scv" playsinline muted style="width:100%;border-radius:10px;background:#000"></video><p class="note" style="margin:0">Hold the barcode from the back of the book inside the picture.</p><div class="row"><button data-act="scstop">Cancel</button></div></div></dialog>
+<dialog id="scd"><div class="fm"><h2>Scan a barcode</h2><video id="scv" playsinline muted style="width:100%;border-radius:10px;background:#000"></video><p id="sc_msg" class="note" style="margin:0"></p><div class="row"><button data-act="scphoto">Take a photo instead</button><button data-act="scstop">Cancel</button></div></div></dialog>
 <dialog id="xd"><div class="fm">
 <h2>Backup</h2>
 <p class="note" style="margin:0">Your books are saved in this browser. Copy this text somewhere safe to keep a backup, or paste a backup here to restore it. Photos aren’t included in this text; they sync through OneDrive.</p>
@@ -233,7 +235,6 @@ function syncForm(){
 }
 /* ---------- OneDrive sync ---------- */
 const sk=b=>(b.series||b.title)+'|'+String(b.sno||0).padStart(4,'0')+'|'+b.title;
-const cs=t=>{$('#cs').textContent=t};
 const tm=()=>new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 const RU=()=>location.origin+location.pathname.replace(/index\.html$/,'');
 let M=null,acct=null,cloudTag='',pt=null;
@@ -244,20 +245,42 @@ async function token(){
  catch(e){if(!navigator.onLine)throw e;await M.acquireTokenRedirect({scopes:SC,account:acct});return null}
 }
 async function gr(path,opt){const t=await token();if(!t)return null;opt=opt||{};opt.headers=Object.assign({Authorization:'Bearer '+t},opt.headers||{});return fetch('https://graph.microsoft.com/v1.0'+path,opt)}
+const cs=t=>{$('#cs').textContent=t;const o=$('#o_st');if(o)o.textContent=t};
+const AUTH=()=>'https://login.microsoftonline.com/'+(localStorage.getItem('bs-auth')||'common');
+function why(e){const m=String((e&&e.errorCode)||'')+' '+String((e&&(e.errorMessage||e.message))||'');
+ const L=[[/AADSTS50011|redirect_uri/i,'The address isn’t registered. In Azure, open Authentication and add '+RU()+' under Single-page application.'],
+  [/AADSTS9002326|cross-origin/i,'Your address is registered under the Web platform. In Azure, open Authentication, delete it from Web, and add it under Single-page application.'],
+  [/AADSTS9002331|consumers/i,'Your app is set to personal accounts only. Change Account type below to “Personal Microsoft accounts only” and connect again.'],
+  [/AADSTS700016/,'Microsoft doesn’t recognize that client ID. Copy the Application (client) ID again from the app’s Overview page.'],
+  [/AADSTS50020|AADSTS50194|unauthorized_client/i,'Your app registration doesn’t accept this kind of account. Check the account type in Azure, or change Account type below.'],
+  [/AADSTS65001|AADSTS90094|consent_required/i,'The Files.ReadWrite permission wasn’t approved. Connect again and accept, or ask your IT admin if it’s a work account.'],
+  [/interaction_in_progress/i,'An earlier sign-in didn’t finish. Tap Reset sign-in, then Save and connect.'],
+  [/user_cancelled|access_denied/i,'Sign-in was cancelled. Tap Save and connect to try again.'],
+  [/network|fetch/i,'Couldn’t reach Microsoft. Check your connection and try again.']];
+ for(const[r,t]of L)if(r.test(m))return t;
+ return 'OneDrive sign-in problem: '+(m.trim()||'unknown error')+'. Tap Reset sign-in, then Save and connect.'}
 async function od(login){
  const id=localStorage.getItem('bs-cid');
- if(!id){cs('Saved in this browser only. Tap OneDrive to set up syncing.');return}
- if(!window.msal){cs('Saved in this browser only. The Microsoft sign-in library didn’t load.');return}
+ if(!id){cs('Not connected to OneDrive. Tap OneDrive to set up syncing.');return}
+ if(!window.msal){cs('Not connected. The Microsoft sign-in library didn’t load, so check your connection and reload.');return}
  try{
-  M=new msal.PublicClientApplication({auth:{clientId:id,authority:'https://login.microsoftonline.com/common',redirectUri:RU()},cache:{cacheLocation:'localStorage'}});
+  cs(login?'Opening Microsoft sign-in…':'Checking OneDrive sign-in…');
+  M=new msal.PublicClientApplication({auth:{clientId:id,authority:AUTH(),redirectUri:RU(),navigateToLoginRequestUrl:false},cache:{cacheLocation:'localStorage',storeAuthStateInCookie:true}});
   if(M.initialize)await M.initialize();
   const r=await M.handleRedirectPromise();acct=(r&&r.account)||M.getAllAccounts()[0]||null;
-  if(!acct){if(login){await M.loginRedirect({scopes:SC});return}cs('Saved in this browser only. Tap OneDrive to connect.');return}
+  if(acct&&M.setActiveAccount)M.setActiveAccount(acct);
+  if(!acct){if(login){await M.loginRedirect({scopes:SC,prompt:'select_account'});return}cs('Not connected to OneDrive. Tap OneDrive, then Save and connect.');return}
+  cs('Connected as '+(acct.username||'your Microsoft account')+'.');
   await pull()
- }catch(e){cs('OneDrive sign-in problem: '+(e.errorMessage||e.message||'unknown error')+'.')}
+ }catch(e){acct=null;cs(why(e))}
 }
-function oConn(){const v=$('#o_cid').value.trim();if(!v)return toast('Paste your client ID first.');localStorage.setItem('bs-cid',v);$('#odd').close();od(true)}
-function oOut(){if(M&&acct)M.logoutRedirect({account:acct});else toast('Not connected.')}
+function oConn(){const v=$('#o_cid').value.trim();if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v))return cs('That client ID doesn’t look right. It has 36 characters with dashes, from the app’s Overview page.');
+ localStorage.setItem('bs-cid',v);localStorage.setItem('bs-auth',$('#o_auth').value);od(true)}
+function oOut(){if(M&&acct)M.logoutRedirect({account:acct});else cs('Not connected.')}
+function oReset(){
+ for(const st of[localStorage,sessionStorage])Object.keys(st).forEach(k=>{if(/^msal\.|login\.windows\.net|login\.microsoftonline|interaction/i.test(k))st.removeItem(k)});
+ document.cookie.split(';').forEach(c=>{const k=c.split('=')[0].trim();if(/^msal/i.test(k))document.cookie=k+'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/'});
+ acct=null;M=null;cs('Sign-in reset. Tap Save and connect.')}
 /* ---------- Per-book merge sync ---------- */
 let KN=new Set();const LS={};
 const strip=it=>JSON.stringify(it,(k,v)=>k==='u'?undefined:v);
@@ -309,7 +332,7 @@ async function push(force){
 }
 /* ---------- Photos: cached on each device, stored as separate OneDrive files ---------- */
 const URLS={},UP=new Set(JSON.parse(localStorage.getItem('bs-up')||'[]'));
-const IDB=()=>new Promise((ok,no)=>{const r=indexedDB.open('bs-img',1);r.onupgradeneeded=()=>r.result.createObjectStore('i');r.onsuccess=()=>ok(r.result);r.onerror=no});
+const IDB=()=>new Promise((ok,no)=>{setTimeout(()=>no(new Error('idb timeout')),4000);const r=indexedDB.open('bs-img',1);r.onupgradeneeded=()=>r.result.createObjectStore('i');r.onsuccess=()=>ok(r.result);r.onerror=no});
 async function idb(mode,fn){const d=await IDB();return new Promise((ok,no)=>{const t=d.transaction('i',mode),q=fn(t.objectStore('i'));t.oncomplete=()=>ok(q&&q.result);t.onerror=no})}
 const putImg=(id,b)=>idb('readwrite',s=>s.put(b,id)).then(()=>{URLS[id]=URL.createObjectURL(b)});
 async function loadImgs(){try{const d=await IDB();await new Promise(ok=>{const q=d.transaction('i').objectStore('i').openCursor();q.onsuccess=()=>{const c=q.result;if(c){URLS[c.key]=URL.createObjectURL(c.value);c.continue()}else ok()};q.onerror=ok})}catch(e){}}
@@ -434,19 +457,53 @@ function trAct(a){
  save();vShelf()
 }
 /* ---------- Barcode scan and ISBN lookup ---------- */
-let scStream=null,scTimer=null,scZ=null;
-function scStop(){clearInterval(scTimer);scTimer=null;if(scZ){try{scZ.reset()}catch(e){}scZ=null}if(scStream){scStream.getTracks().forEach(t=>t.stop());scStream=null}const d=$('#scd');if(d.open)d.close()}
-const zx=()=>window.ZXing?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';s.onload=ok;s.onerror=no;document.head.appendChild(s)});
-function got(v){if(!scStream)return;if(!/^97[89]\d{10}$/.test(v)&&!/^\d{9}[\dX]$/.test(v))return;scStop();F('isbn').value=v;lookup()}
+let scOn=false,scStream=null,scTimer=null,scZ=null;
+function scStop(){scOn=false;clearInterval(scTimer);scTimer=null;if(scZ){try{scZ.reset()}catch(e){}scZ=null}
+ const v=$('#scv');[scStream,v.srcObject].forEach(s=>{try{s&&s.getTracks().forEach(t=>t.stop())}catch(e){}});scStream=null;v.srcObject=null;
+ const d=$('#scd');if(d.open)d.close()}
+const zx=()=>window.ZXing?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';s.onload=ok;s.onerror=()=>no(new Error('scanner library'));document.head.appendChild(s)});
+function zh(){const h=new Map(),B=ZXing.BarcodeFormat;h.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[B.EAN_13,B.EAN_8,B.UPC_A]);h.set(ZXing.DecodeHintType.TRY_HARDER,true);return h}
+const scMsg=t=>{$('#sc_msg').textContent=t};
+let zMFR=null;
+function zDecode(src,w,h){if(!zMFR){zMFR=new ZXing.MultiFormatReader();zMFR.setHints(zh())}
+ const c=zDecode.c||(zDecode.c=document.createElement('canvas'));c.width=w;c.height=h;c.getContext('2d',{willReadFrequently:true}).drawImage(src,0,0,w,h);
+ try{return zMFR.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.HTMLCanvasElementLuminanceSource(c)))).getText()}catch(e){return null}}
+function useCode(v,fromPhoto){v=String(v||'').replace(/\D/g,'');
+ if(!/^97[89]\d{10}$/.test(v)){const t='That barcode reads '+v+', which isn’t an ISBN. Look for the barcode that starts with 978 or 979.';fromPhoto?toast(t):scMsg(t);return false}
+ scStop();F('isbn').value=v;lookup();return true}
+function got(v){if(scOn)useCode(v)}
+function camErr(e){const n=e&&e.name;
+ if(n==='NotAllowedError')return 'The camera is blocked for this site. Allow it in your browser settings, or use Take a photo.';
+ if(n==='NotFoundError'||n==='OverconstrainedError')return 'No camera was found. Use Take a photo or type the ISBN.';
+ if(e&&e.message==='scanner library')return 'The scanner couldn’t load. Check your connection and try again.';
+ return 'The camera didn’t start. Try Take a photo or type the ISBN.'}
 async function scan(){
- if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return toast('This browser can’t open the camera. Type the ISBN instead.');
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$('#sc_file').click();return}
+ const v=$('#scv'),cons={video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false};
+ scMsg('Starting the camera…');$('#scd').showModal();scOn=true;
  try{
-  const v=$('#scv');$('#scd').showModal();
-  scStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});v.srcObject=scStream;await v.play();
-  if('BarcodeDetector' in window){const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a']});
-   scTimer=setInterval(async()=>{try{const r=await det.detect(v);if(r.length)got(r[0].rawValue)}catch(e){}},400)}
-  else{await zx();scZ=new ZXing.BrowserMultiFormatReader();scZ.decodeFromVideoElement(v,res=>{if(res)got(res.getText())})}
- }catch(e){scStop();toast('Couldn’t start the camera. Check the permission or type the ISBN instead.')}
+  let native=false;try{native='BarcodeDetector' in window&&(await BarcodeDetector.getSupportedFormats()).includes('ean_13')}catch(e){}
+  if(!native)await zx();
+  scStream=await navigator.mediaDevices.getUserMedia(cons);if(!scOn)return scStop();
+  v.srcObject=scStream;v.setAttribute('playsinline','');v.muted=true;await v.play();
+  const det=native?new BarcodeDetector({formats:['ean_13','ean_8','upc_a']}):null;let busy=false;
+  scTimer=setInterval(async()=>{if(busy||!scOn||!v.videoWidth)return;busy=true;
+   try{if(det){const r=await det.detect(v);if(r.length)got(r[0].rawValue)}
+    else{const k=Math.min(1,1280/Math.max(v.videoWidth,v.videoHeight)),code=zDecode(v,Math.round(v.videoWidth*k),Math.round(v.videoHeight*k));if(code)got(code)}}catch(e){}
+   busy=false},250);
+  if(scOn)scMsg('Hold the barcode on the back of the book flat and steady inside the picture, about 6 inches away.')
+ }catch(e){scStop();toast(camErr(e))}
+}
+async function scanPhoto(e){
+ const f=e.target.files[0];e.target.value='';if(!f)return;toast('Reading the barcode…');
+ try{
+  let code=null;
+  try{if('BarcodeDetector' in window){const r=await new BarcodeDetector({formats:['ean_13','ean_8','upc_a']}).detect(await createImageBitmap(f));if(r.length)code=r[0].rawValue}}catch(x){}
+  if(!code){await zx();const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=URL.createObjectURL(f)});
+   for(const max of[1600,1000,2400]){const k=Math.min(1,max/Math.max(img.width,img.height));code=zDecode(img,Math.round(img.width*k),Math.round(img.height*k));if(code)break}}
+  if(!code)return toast('No barcode found in that photo. Try again closer, with the barcode flat and in focus.');
+  useCode(code,true)
+ }catch(x){toast(camErr(x))}
 }
 async function lookup(){
  const isbn=F('isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase();
@@ -469,7 +526,7 @@ async function lookup(){
  if(!pend.cov){try{const r=await fetch('https://covers.openlibrary.org/b/isbn/'+isbn+'-L.jpg?default=false');if(r.ok){pend.cov=await up(await r.blob(),500);imgNote()}}catch(e){}}
  toast(dup?'Filled in. Note: you already have “'+dup.title+'”.':'Details filled in. Check them, pick the format, and save.')
 }
-$('#scd').addEventListener('close',scStop);
+$('#scd').addEventListener('close',scStop);$('#sc_file').onchange=scanPhoto;
 /* ---------- Events ---------- */
 document.addEventListener('click',e=>{
  const g=s=>e.target.closest(s);let x;
@@ -480,8 +537,8 @@ document.addEventListener('click',e=>{
  if(x=g('[data-dl]')){const l=S.log.find(l=>l.id===x.dataset.dl);S.log=S.log.filter(l=>l.id!==x.dataset.dl);save();vToday();return}
  if(x=g('[data-edit]')){openBook(x.dataset.edit);return}
  if(x=g('[data-act]')){const a=x.dataset.act;
-  if(a==='add')openBook();if(a==='od'){$('#o_cid').value=localStorage.getItem('bs-cid')||'';$('#o_ru').textContent=RU();$('#odd').showModal()}if(a==='oconn')oConn();if(a==='osync')pull();if(a==='oout')oOut();
-  if(a==='save')saveBook();if(a==='scan')scan();if(a==='lookup')lookup();if(a==='scstop')scStop();if(a==='rmcov'){pend.cov='';imgNote()}if(a==='rmsp'){pend.sp='';F('usesp').checked=false;imgNote()}
+  if(a==='add')openBook();if(a==='od'){$('#o_cid').value=localStorage.getItem('bs-cid')||'';$('#o_auth').value=localStorage.getItem('bs-auth')||'common';$('#o_st').textContent=$('#cs').textContent;$('#o_ru').textContent=RU();$('#odd').showModal()}if(a==='oconn')oConn();if(a==='osync')pull();if(a==='oout')oOut();if(a==='oreset')oReset();
+  if(a==='save')saveBook();if(a==='scan')scan();if(a==='lookup')lookup();if(a==='scstop')scStop();if(a==='scphoto'){scStop();$('#sc_file').click()}if(a==='rmcov'){pend.cov='';imgNote()}if(a==='rmsp'){pend.sp='';F('usesp').checked=false;imgNote()}
   if(a==='close')x.closest('dialog').close();
   if(a==='log')logIt();
   if(a==='del'){if(x.dataset.armed){S.books=S.books.filter(b=>b.id!==editId);S.log=S.log.filter(l=>l.bookId!==editId);save();$('#bd').close();render();toast('Deleted.')}else{x.dataset.armed=1;x.textContent='Tap again to delete'}}
@@ -495,7 +552,7 @@ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.tar
 ['f_own','f_status'].forEach(i=>$('#'+i).onchange=syncForm);$('#f_fmts').onchange=syncForm;
 F('cov').onchange=async e=>{const f=e.target.files[0];if(!f)return;toast('Adding photo…');try{pend.cov=await up(f,500);imgNote()}catch(x){toast('That image could not be read.')}};
 F('spn').onchange=async e=>{const f=e.target.files[0];if(!f)return;toast('Adding photo…');try{pend.sp=await up(f,420);F('usesp').checked=true;imgNote()}catch(x){toast('That image could not be read.')}};
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&acct)pull()});addEventListener('online',()=>{if(acct)pull()});if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});norm();loadImgs().then(()=>{render();od()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&acct)pull()});addEventListener('online',()=>{if(acct)pull()});if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});norm();loadImgs().then(render);od();
 render();
 </script>
 </body>
