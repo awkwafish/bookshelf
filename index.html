@@ -56,6 +56,52 @@ label{display:block;font-size:13px;color:var(--muted)}label input,label select,l
 .cb{position:absolute;display:flex;align-items:flex-end;overflow:hidden;gap:calc(var(--u)*.03)}
 .b2,.t2,.p2{flex:none;position:relative;cursor:pointer;color:#F7ECD9;border:0;padding:0;box-shadow:inset calc(var(--u)*.1) 0 0 rgba(255,255,255,.14),inset calc(var(--u)*-.1) 0 calc(var(--u)*.15) rgba(0,0,0,.3),calc(var(--u)*.04) 0 calc(var(--u)*.08) rgba(0,0,0,.45)}
 .b2{border:max(1.5px,calc(var(--u)*.075)) solid #1b1420;border-radius:calc(var(--u)*.1) calc(var(--u)*.16) calc(var(--u)*.16) calc(var(--u)*.1);display:flex;align-items:center;justify-content:center;overflow:hidden;background-image:linear-gradient(90deg,rgba(255,255,255,.24) 0 13%,rgba(255,255,255,0) 13% 70%,rgba(0,0,0,.22) 70% 100%);box-shadow:calc(var(--u)*.07) calc(var(--u)*.05) 0 rgba(0,0,0,.35)!important}
+.ct{position:relative;flex:none;display:grid;background:#D9AE72;background-image:repeating-linear-gradient(90deg,rgba(120,72,30,.12) 0 2px,transparent 2px 9px,rgba(255,255,255,.08) 9px 11px,transparent 11px 23px);border:3px solid #1b1420;border-radius:6px;box-shadow:inset 0 0 0 3px rgba(255,255,255,.18),6px 8px 0 rgba(0,0,0,.25)}
+.ctc{display:flex;flex-direction:column;gap:1px;padding:3px 3px 4px;background:#2b2018;background-image:linear-gradient(90deg,rgba(0,0,0,.35),transparent 18%,transparent 82%,rgba(0,0,0,.35));border:3px solid #1b1420;border-radius:3px;min-width:0}
+.cx,.cx-e{display:block;height:var(--sh);flex:none}
+.cx{position:relative;width:100%;padding:0 6px 0 9%;border:1.5px solid #1b1420;border-radius:3px;cursor:pointer;text-align:left;overflow:hidden;background-image:linear-gradient(rgba(255,255,255,.28) 0 16%,rgba(255,255,255,0) 16% 72%,rgba(0,0,0,.22) 72%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.cx-l{position:absolute;left:0;top:0;bottom:0;width:6%;background:rgba(235,240,240,.75);border-right:1.5px solid #1b1420}
+.cx span{display:block;font:600 max(8px,calc(var(--sh)*.48))/var(--sh) Fraunces,Georgia,serif;color:#F7ECD9;text-shadow:0 1px 0 rgba(27,20,32,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-r{position:absolute;right:4px;top:-1px;width:6px;height:60%;background:#F8DD94;border:1px solid #1b1420;border-top:0}
+.cx-e{border-radius:3px;background:rgba(0,0,0,.25);box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.ct-star{position:absolute;pointer-events:none;height:auto}
+.tv{position:relative;flex:none;padding-top:calc(var(--t)*9)}
+.tv-rm{position:absolute;top:0;left:30%;width:44%;transform:rotate(-4deg);z-index:2;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.25))}
+.tv-cab{position:relative;background:#3a3640;background-image:linear-gradient(180deg,rgba(255,255,255,.08),transparent 30%);border:calc(var(--t)*.9) solid #1b1420;border-radius:calc(var(--t)*4);padding:calc(var(--t)*5) calc(var(--t)*5) calc(var(--t)*3);box-shadow:inset 0 calc(var(--t)*.6) 0 rgba(255,255,255,.12),calc(var(--t)*1.2) calc(var(--t)*1.6) 0 rgba(0,0,0,.28)}
+.tv-bez{background:#2a2630;border:calc(var(--t)*.7) solid #1b1420;border-radius:calc(var(--t)*4);padding:calc(var(--t)*2.4)}
+.tv-scr{position:relative;aspect-ratio:4/3;overflow:hidden;border:calc(var(--t)*.6) solid #1b1420;border-radius:calc(var(--t)*5)/calc(var(--t)*6);background:#1e2450;display:flex;flex-direction:column;font-family:Figtree,sans-serif;color:#F0E1BE;box-shadow:inset 0 0 calc(var(--t)*6) rgba(0,0,0,.65)}
+.tv-scr::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:repeating-linear-gradient(rgba(0,0,0,.16) 0 1px,transparent 1px 3px),radial-gradient(ellipse at 28% 18%,rgba(255,255,255,.2),transparent 40%)}
+.tv-top{display:flex;justify-content:space-between;align-items:center;padding:calc(var(--t)*1.6) calc(var(--t)*3);background:#364062;border-bottom:calc(var(--t)*.5) solid #1b1420}
+.tv-logo{font-family:Bangers,'Arial Black',sans-serif;font-size:calc(var(--t)*5);letter-spacing:.06em;color:#F8DD94;-webkit-text-stroke:calc(var(--t)*.25) #1b1420;paint-order:stroke fill}
+.tv-clock{font-weight:600;font-size:calc(var(--t)*3.6);color:#F0E1BE}
+.tv-promo{padding:calc(var(--t)*2) calc(var(--t)*3);background:linear-gradient(90deg,#4B6E70,#364062);border-bottom:calc(var(--t)*.5) solid #1b1420;display:flex;flex-direction:column;gap:calc(var(--t)*.6)}
+.tv-pl{font-size:calc(var(--t)*2.8);font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#F8DD94}
+.tv-promo b{font:700 calc(var(--t)*5)/1.1 Fraunces,Georgia,serif;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tv-promo small{font-size:calc(var(--t)*3);opacity:.85}
+.tv-pb{display:block;height:calc(var(--t)*1.6);background:rgba(0,0,0,.35);border-radius:9px;overflow:hidden}.tv-pb i{display:block;height:100%;background:#F8DD94}
+.tv-list{position:relative;flex:1;overflow:hidden}
+.tv-roll{display:flex;flex-direction:column}
+.tv-roll.on{animation:tvroll calc(var(--n)*2.6s) linear infinite}
+.tv-scr:hover .tv-roll,.tv-scr:focus-within .tv-roll{animation-play-state:paused}
+@keyframes tvroll{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+@media (prefers-reduced-motion:reduce){.tv-roll.on{animation:none}.tv-list{overflow-y:auto}}
+.tv-row{display:flex;align-items:stretch;gap:0;width:100%;min-height:calc(var(--t)*9);padding:0;border:0;border-bottom:calc(var(--t)*.4) solid #1b1420;background:#2b3366;color:inherit;text-align:left;cursor:pointer;font:inherit}
+.tv-row:nth-child(even){background:#333d78}
+.tv-row:hover,.tv-row:focus-visible{background:#4B6E70;outline:none}
+.tv-ch{flex:none;width:calc(var(--t)*12);display:flex;flex-direction:column;align-items:center;justify-content:center;background:#8F4B4B;border-right:calc(var(--t)*.4) solid #1b1420;font:700 calc(var(--t)*3.8)/1 Figtree,sans-serif;color:#fff}
+.tv-ch small{font-size:calc(var(--t)*2.2);font-weight:600;color:#F8DD94;letter-spacing:.05em}
+.tv-ti{flex:1;min-width:0;padding:calc(var(--t)*1.2) calc(var(--t)*2.2);display:flex;flex-direction:column;justify-content:center}
+.tv-ti b{font-weight:700;font-size:calc(var(--t)*3.7);line-height:1.15;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tv-ti small{font-size:calc(var(--t)*2.6);color:#F0E1BE;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tv-tag{flex:none;align-self:center;margin-right:calc(var(--t)*2);padding:calc(var(--t)*.5) calc(var(--t)*1.4);border:calc(var(--t)*.35) solid #1b1420;border-radius:calc(var(--t)*1);font-size:calc(var(--t)*2.3);font-weight:700;letter-spacing:.05em;color:#1b1420;background:#F0E1BE}
+.tv-tag.t-reading{background:#F8DD94}.tv-tag.t-read{background:#B3CAC2}
+.tv-empty{margin:0;padding:calc(var(--t)*4);font-size:calc(var(--t)*3.4);text-align:center}
+.tv-pan{display:flex;align-items:center;gap:calc(var(--t)*2.5);margin-top:calc(var(--t)*2.5);padding:0 calc(var(--t)*1)}
+.tv-spk{flex:1;height:calc(var(--t)*5);background:repeating-linear-gradient(90deg,#1b1420 0 calc(var(--t)*.6),transparent calc(var(--t)*.6) calc(var(--t)*1.6));border-radius:4px;opacity:.75}
+.tv-btns{display:flex;gap:calc(var(--t)*1.2);align-items:center}.tv-btns i{width:calc(var(--t)*3.2);height:calc(var(--t)*1.8);border-radius:4px;background:#2a2630;border:calc(var(--t)*.35) solid #1b1420}
+.tv-btns i.tv-led{width:calc(var(--t)*1.8);border-radius:50%;background:#F8DD94;box-shadow:0 0 calc(var(--t)*1.2) #F8DD94}
+.tv-knob{width:calc(var(--t)*5);height:calc(var(--t)*5);border-radius:50%;background:radial-gradient(circle at 35% 35%,#6d6676,#2a2630 70%);border:calc(var(--t)*.5) solid #1b1420}
+
 .rk{position:relative;flex:none}
 .rk-l{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 .ck{position:absolute;left:25%;width:50%;height:20.59%;padding:calc(var(--r)*7) calc(var(--r)*7) 0;border:calc(var(--r)*3.2) solid #1b1420;border-radius:calc(var(--r)*3);display:flex;flex-direction:column;align-items:center;gap:calc(var(--r)*3);cursor:pointer;overflow:hidden;background-image:radial-gradient(rgba(255,255,255,.2) 22%,transparent 26%);background-size:calc(var(--r)*9) calc(var(--r)*9);box-shadow:calc(var(--r)*3) calc(var(--r)*4) 0 rgba(0,0,0,.28)}
@@ -460,6 +506,36 @@ async function up(file,max,png){
  const t=png?'image/png':'image/jpeg';
  try{const b=await new Promise(r=>c.toBlob(r,t,.85)),id=uid();await putImg(id,b);return 'img:'+id}catch(e){return c.toDataURL(t,.75)}
 }
+/* ---------- Cassette wall rack (audiobooks) ---------- */
+const CT_ROWS=14;
+const ctStar=(x,y,s)=>`<svg class="ct-star" style="left:${x}%;top:${y}%;width:${s}%" viewBox="-16 -16 32 32" aria-hidden="true"><path d="M0-14C2-4 4-2 14 0C4 2 2 4 0 14C-2 4-4 2-14 0C-4-2-2-4 0-14Z" fill="#fff" stroke="#1b1420" stroke-width="2.6" stroke-linejoin="round"/></svg>`;
+function ctHtml(list,CW){
+ const cols=CW>=520?4:3,fr=Math.round(CW*.05),dv=Math.max(4,Math.round(CW*.016)),cw=(CW-2*fr-(cols-1)*dv)/cols,sh=Math.max(18,Math.round(cw*.2)),per=cols*CT_ROWS,out=[];
+ for(let k=0;k===0||k*per<list.length;k++){const chunk=list.slice(k*per,(k+1)*per);let colsH='';
+  for(let c=0;c<cols;c++){let slots='';for(let r=0;r<CT_ROWS;r++){const b=chunk[c*CT_ROWS+r];
+   slots+=b?`<button class="cx" data-edit="${b.id}" title="${esc(b.title)} by ${esc(b.author)} (audiobook)" style="background-color:${col(b)}"><i class="cx-l"></i><span>${esc(b.title)}</span>${b.status==='reading'?'<i class="cx-r"></i>':''}</button>`:'<i class="cx-e"></i>'}
+   colsH+=`<div class="ctc">${slots}</div>`}
+  out.push(`<div class="ct" role="group" aria-label="Audiobooks" style="width:${CW}px;padding:${fr}px;gap:${dv}px;grid-template-columns:repeat(${cols},1fr);--sh:${sh}px">${colsH}${ctStar(-3,-3,7)}${ctStar(95,40,5)}</div>`)}
+ return out.join('')}
+/* ---------- CRT TV channel guide (ebooks) ---------- */
+const clk=()=>new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+setInterval(()=>document.querySelectorAll('.tv-clock').forEach(e=>e.textContent=clk()),30000);
+const TV_REMOTE=`<svg class="tv-rm" viewBox="0 0 240 70" aria-hidden="true"><rect x="4" y="6" width="232" height="58" rx="14" fill="#2b2731" stroke="#1b1420" stroke-width="5"/><rect x="16" y="16" width="70" height="38" rx="8" fill="#3a3541"/><circle cx="32" cy="28" r="6" fill="#8F4B4B" stroke="#1b1420" stroke-width="2.5"/><g fill="#d9d2c4" stroke="#1b1420" stroke-width="2">${[0,1,2,3].map(i=>[0,1].map(j=>`<rect x="${100+i*20}" y="${18+j*18}" width="13" height="10" rx="3"/>`).join('')).join('')}</g><circle cx="200" cy="35" r="17" fill="#364062" stroke="#1b1420" stroke-width="3"/><path d="M200 24V46M189 35H211" stroke="#F0E1BE" stroke-width="4" stroke-linecap="round"/><path d="M22 14H70" stroke="rgba(255,255,255,.18)" stroke-width="4" stroke-linecap="round"/></svg>`;
+function tvHtml(list,TW){
+ const order={reading:0,backlog:1,read:2},eb=list.slice().sort((a,b)=>order[a.status]-order[b.status]||sk(a).localeCompare(sk(b)));
+ const now=eb.find(b=>b.status==='reading')||eb.find(b=>b.status==='backlog')||eb[0];
+ const tag=b=>b.status==='reading'?'NOW READING':b.status==='read'?`READ${b.year?' '+b.year:''}`:'UP NEXT';
+ const row=(b,i)=>`<button class="tv-row" data-edit="${b.id}" title="${esc(b.title)} by ${esc(b.author)} (ebook)"><span class="tv-ch">${i+2}<small>${esc((mainG(b)||'BOOK').replace(/[^A-Za-z]/g,'').slice(0,3).toUpperCase()||'BK')}</small></span><span class="tv-ti"><b>${esc(b.title)}</b><small>${esc(b.author||'')}</small></span><span class="tv-tag t-${b.status}">${tag(b)}</span></button>`;
+ const rows=eb.map(row).join(''),roll=eb.length>3;
+ const promo=now?`<div class="tv-promo"><span class="tv-pl">${now.status==='reading'?'Now reading':'Coming up'}</span><b>${esc(now.title)}</b>${now.status==='reading'&&frac(now)>0?`<span class="tv-pb"><i style="width:${Math.round(frac(now)*100)}%"></i></span>`:`<small>${esc(now.author||'')}</small>`}</div>`:'';
+ return `<div class="tv" role="group" aria-label="Ebooks" style="width:${TW}px;--t:${(TW/100).toFixed(3)}px">${TV_REMOTE}
+ <div class="tv-cab"><div class="tv-bez"><div class="tv-scr">
+  <div class="tv-top"><span class="tv-logo">Book Guide</span><span class="tv-clock">${clk()}</span></div>
+  ${promo}
+  <div class="tv-list">${eb.length?`<div class="tv-roll${roll?' on':''}" style="--n:${eb.length}">${rows}${roll?rows.replace(/<button /g,'<button tabindex="-1" aria-hidden="true" '):''}</div>`:'<p class="tv-empty">No ebooks on tonight. Add a book with the Ebook format to see it here.</p>'}</div>
+ </div></div>
+ <div class="tv-pan"><span class="tv-spk"></span><span class="tv-btns"><i></i><i></i><i></i><i class="tv-led"></i></span><span class="tv-knob"></span><span class="tv-knob"></span><span class="tv-spk"></span></div></div>
+ ${ctStar(97,3,5)}${ctStar(-2,62,4)}</div>`}
 /* ---------- Comic rack ---------- */
 const isComic=b=>(b.genres||[]).some(g=>/graphic|comic|manga|webtoon/i.test(g));
 const RACK_FRONT=8,RACK_SIDE=8,RACK_R=3.4,RK_TOP=165,RK_PITCH=80;
@@ -545,8 +621,8 @@ let SUN_=0;
 const CASE_R=1.411,STAND_R=1.25,STAND_U=28,STAND_ROWS=[[165,695,415,895,0,0.3,1,0,6],[185,1140,550,1140,0,0,0,0,0],[668,1140,835,1140,0.1,0.1,0,0,0],[720,690,930,497,0,0,0,1,7]];
 const standRows=()=>STAND_ROWS.map(([x1,y1,x2,y2,o,e,end,flat,stack])=>{const len=Math.hypot(x2-x1,y2-y1)/(1000/(SUN_||STAND_U));return{x:x1/10,y:y1/12.5,ang:Math.atan2(y2-y1,x2-x1)*180/Math.PI,len,o,e,end:!!end,flat:!!flat,stack:stack||0,cap:len-o-e}});
 function shelfSizes(hasStand){const ap=$('#app'),cs_=getComputedStyle(ap),aw=Math.max(280,(ap.clientWidth||800)-parseFloat(cs_.paddingLeft)-parseFloat(cs_.paddingRight)-2),maxH=Math.max(480,innerHeight-150);
- if(hasStand&&aw>=860){let wc=(aw-24)/(1+CASE_R/STAND_R);wc=Math.min(wc,maxH/CASE_R);return{W:Math.floor(wc),SW:Math.floor(wc*CASE_R/STAND_R)}}
- return{W:Math.floor(Math.min(aw,760)),SW:Math.floor(Math.min(aw,640))}}
+ if(aw>=860){const W=Math.floor(Math.min((aw-24)*.52,maxH/CASE_R));return{W,SW:Math.floor(Math.min(aw,640)),CW:Math.floor(Math.min(aw-W-24,600)),TW:Math.floor(Math.min((aw-24)*.55,560))}}
+ return{W:Math.floor(Math.min(aw,760)),SW:Math.floor(Math.min(aw,640)),CW:Math.floor(Math.min(aw,600)),TW:Math.floor(Math.min(aw,560))}}
 const STACK_SLOTS={0:[[268,731,37],[398,832,37],[333,641,37],[471,751,37],[394,524,37],[520,637,37]],3:[[703,564,-35],[617,479,-35],[528,394,-35],[447,321,-35],[796,443,35],[678,354,35],[569,240,35]]};
 function stackHtml(items,ri){return items.map((it,i)=>{const[x,y,a]=STACK_SLOTS[ri][i];return `<div class="vslot" style="left:${x/10}%;top:${y/12.5}%;transform:translate(-50%,-50%) rotate(${a}deg)">${it.html(11,true)}</div>`}).join('')}
 function mkSmall(list){return list.map(p=>p.kind==='tape'?{w:4.88,wf:4.88,html:(h,flat)=>piece(p,h,flat)}:{w:2.95,wf:6.05,html:(h,flat)=>piece(p,h,flat)})}
@@ -764,7 +840,7 @@ function streams(){
  return[mk(big),mkSmall(sm),cm]
 }
 function vShelf(){
- const [bg,sm,cm]=streams(),fb=flow(bg,BIG),{W,SW}=shelfSizes(sm.length>0);SUN_=STAND_U;const stands=flowStand(sm),rows=standRows();
+ const [bg,sm,cm]=streams(),fb=flow(bg,BIG),{W,SW,CW,TW}=shelfSizes(sm.length>0);SUN_=STAND_U;const stands=flowStand(sm),rows=standRows();
  const maxcb=Math.max(0,...S.trinkets.map(t=>t.cb||0)),units=Math.max(1,Math.ceil((fb.last+1)/BIG.length),Math.floor(maxcb/NC)+1);
  const H=Math.round(W*CASE_R),px=(W/24).toFixed(3),SH=Math.round(SW*STAND_R),su=(SW/SUN_).toFixed(3);
  let cases='';
@@ -776,13 +852,14 @@ function vShelf(){
    cbs+=`<div class="cb" style="left:${c[0]}%;width:${c[1]}%;top:${c[2]}%;height:${c[3]}%">${[...L,...hh.slice(0,sp),...M,...hh.slice(sp),...R].join('')}</div>`});
   cases+=`<div class="bc" style="--u:${px}px;width:${W}px;height:${H}px">${cbs}</div>`}
  const RW=Math.round(Math.max(170,Math.min(340,($('#app').clientWidth||400)-40,(innerHeight-120)/RACK_R))),rkHtml=Array.from({length:Math.ceil(cm.length/(RACK_FRONT+RACK_SIDE))},(_,k)=>rackHtml(cm.slice(k*(RACK_FRONT+RACK_SIDE),(k+1)*(RACK_FRONT+RACK_SIDE)),RW,k)).join('');
+ const byG=(a,b)=>mainG(a).localeCompare(mainG(b))||sk(a).localeCompare(sk(b)),auds=S.books.filter(b=>b.formats.includes('audiobook')).sort(byG),ebs=S.books.filter(b=>b.formats.includes('ebook'));
  const stHtml=stands.map(st=>`<div class="vs" role="group" aria-label="Audiobooks and ebooks" style="--u:${su}px;width:${SW}px;height:${SH}px">${st.map((items,ri)=>{const r=rows[ri];if(r.stack)return stackHtml(items,ri);return items.length?`<div class="vr" style="left:${r.x}%;top:${r.y}%;width:calc(var(--u)*${r.len.toFixed(2)});transform:rotate(${r.ang.toFixed(1)}deg)"><div class="vi" style="${r.end?`right:calc(var(--u)*${r.e});flex-direction:row-reverse`:`left:calc(var(--u)*${r.o})`}${r.flat&&!r.stack?';transform:translateY(50%)':''}">${r.stack?`<div class="sk" style="margin-left:calc(var(--u)*${((r.len-4.8)/2).toFixed(2)})">${items.slice(0,4).map(i=>i.html(11,true)).join('')}${items.length>4?`<div class="sk2">${items.slice(4).map(i=>i.html(11,true)).join('')}</div>`:''}</div>`:items.map(i=>i.html(11,r.flat)).join('')}</div></div>`:''}).join('')}<div class="vs-fg"></div></div>`).join('');
  $('#app').innerHTML=`<div class="bar"><label class="pri" style="flex:1 1 140px;text-align:center;cursor:pointer;border-radius:999px;padding:6px 14px;background:var(--accent);color:var(--on);font-size:15px">Add a picture frame<input id="tfile" type="file" accept="image/*" class="hide"></label></div>
- <div class="bcw">${cases}${stHtml}${rkHtml}</div>
- <p class="note">Comics and graphic novels go on the wire rack. Other print books fill the bookcase, sorted by main genre with a little sign hanging over each genre. Sets stay together with their number on the spine. Audiobooks (cassettes) and ebooks (phones) fill the book stand: first a stack in the V, then standing on the base on either side, then a stack resting on the red stick. A yellow ribbon marks a book you are reading now. Tap a picture frame to choose its shelf and where it hangs.</p>`;
+ <div class="bcw">${cases}${auds.length?ctHtml(auds,CW):''}${ebs.length?tvHtml(ebs,TW):''}${rkHtml}</div>
+ <p class="note">Comics and graphic novels go on the wire rack. Other print books fill the bookcase, sorted by main genre with a little sign hanging over each genre. Sets stay together with their number on the spine. Audiobooks fill the cassette rack, column by column, sorted by genre. Ebooks play on the TV as a channel guide, with what you are reading now at the top. Hover or tap the screen to pause the listings. A yellow ribbon or tab marks a book you are reading now. Tap a picture frame to choose its shelf and where it hangs.</p>`;
  $('#tfile').onchange=addTrinket;fitTitles()
 }
-function fitTitles(){document.querySelectorAll('.vs .p2 span, .vs .cs .lb2 span, .rk .ck-t').forEach(s=>{let fs=parseFloat(getComputedStyle(s).fontSize),n=0;while((s.scrollHeight>s.clientHeight+1||s.scrollWidth>s.clientWidth+1)&&fs>4.5&&n<30){fs-=.5;s.style.fontSize=fs+'px';n++}})}
+function fitTitles(){document.querySelectorAll('.ct .cx span').forEach(s=>{let fs=parseFloat(getComputedStyle(s).fontSize);const min=Math.max(8,fs*.68);while(s.scrollWidth>s.clientWidth+1&&fs>min){fs-=.5;s.style.fontSize=fs+'px'}});document.querySelectorAll('.vs .p2 span, .vs .cs .lb2 span, .rk .ck-t').forEach(s=>{let fs=parseFloat(getComputedStyle(s).fontSize),n=0;while((s.scrollHeight>s.clientHeight+1||s.scrollWidth>s.clientWidth+1)&&fs>4.5&&n<30){fs-=.5;s.style.fontSize=fs+'px';n++}})}
 function trAct(a){
  const t=S.trinkets.find(x=>x.id===trId);if(!t)return;
  const [bg]=streams(),fb=flow(bg,BIG),top=Math.max(1,Math.ceil((fb.last+1)/BIG.length))*NC-1;
