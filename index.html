@@ -208,7 +208,7 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
 #toast.show{opacity:1}
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
-</style>
+.rv-hb{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}</style>
 </head>
 <body>
 <header>
@@ -762,7 +762,8 @@ function pickFormat(d,ed){const pf=String((ed&&ed.physical_format)||'').toLowerC
 const clean=t=>String(t||'').replace(/<[^>]*>/g,' ').replace(/\(\[source\]\[\d+\]\)|\[source\].*$|-{3,}[\s\S]*$/i,'').replace(/\s+/g,' ').trim();
 const unpromo=t=>String(t||'').replace(/^(?:\s*(?:an?\s+)?(?:instant\s+|#1\s+)?(?:new york times|usa today|national|sunday times|indie|times|washington post|amazon)?[^.!]{0,40}best-?\s?sell(?:er|ing)[^.!]{0,60}[.!]\s*)+/i,'').trim();
 const short=t=>t.length>600?t.slice(0,600).replace(/\s\S*$/,'')+'…':t;
-const fj=async u=>{try{const r=await fetch(u);return r.ok?await r.json():{_err:r.status}}catch(e){return{_err:'net'}}};
+const fj=async u=>{let t;try{const ac=new AbortController();t=setTimeout(()=>ac.abort(),12000);const r=await fetch(u,{signal:ac.signal});return r.ok?await r.json():{_err:r.status}}catch(e){return{_err:'net'}}finally{clearTimeout(t)}};
+const within=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(undefined),ms))]);
 const nap=ms=>new Promise(r=>setTimeout(r,ms));
 const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
 function parseSeries(s){s=String(s||'').replace(/\s+/g,' ').trim().replace(/[.,;:]+$/,'');if(!s)return null;let m;
@@ -872,16 +873,22 @@ function bsAddIsbn(raw,src){
  S.review.push({id:uid(),isbn:v,status:'looking',title:'',author:'',genres:[],formats:[],pages:0,summary:'',series:'',sno:0,cover:'',dupOf:own?own.title:''});
  save();bsList();try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}
  bsMsg('Added '+v+(own?'. You already have “'+own.title+'”':'')+'. Scan the next one.');bsWork()}
-async function bsWork(){if(bsBusy)return;bsBusy=true;
- try{let d;while(d=S.review.find(r=>r.status==='looking')){
-  let r=null;try{r=await gather(d.isbn,{})}catch(e){}
-  const cur=S.review.find(x=>x.id===d.id);if(!cur)continue;
-  if(r&&r.found){Object.assign(cur,{title:r.title||'',author:r.author,pages:r.pages,genres:r.genres,summary:r.summary,formats:[r.format||'paperback'],series:r.series?r.series.name:'',sno:r.series?r.series.num:0,status:'ready'});
-   for(const u of r.covers){try{const c=await coverFrom(u);if(c){cur.cover=c;break}}catch(e){}}}
-  else if(r&&r.busy){await nap(4000);continue}
-  else cur.status='notfound';
-  save();bsList();if(view==='lib')vLib();await nap(700)}}
- finally{bsBusy=false}}
+async function bsWork(){if(bsBusy)return;bsBusy=true;const tries={};let wait=0;
+ const nextUp=()=>S.review.filter(r=>r.status==='looking').sort((a,b)=>(tries[a.id]||0)-(tries[b.id]||0))[0];
+ try{let d;while(d=nextUp()){
+  const id=d.id;tries[id]=(tries[id]||0)+1;
+  if(tries[id]>1){wait=Math.min(20000,wait+5000);await nap(wait)}
+  let r=null;try{r=await within(gather(d.isbn,{}),45000)}catch(e){}
+  let cur=S.review.find(x=>x.id===id);if(!cur||cur.status!=='looking')continue;
+  if(r&&r.found){
+   let cover='';for(const u of r.covers){try{const c=await within(coverFrom(u),20000);if(c){cover=c;break}}catch(e){}}
+   cur=S.review.find(x=>x.id===id);if(!cur)continue;
+   Object.assign(cur,{title:r.title||'',author:r.author,pages:r.pages,genres:r.genres,summary:r.summary,formats:[r.format||'paperback'],series:r.series?r.series.name:'',sno:r.series?r.series.num:0,cover,status:'ready',why:''})}
+  else if((!r||r.busy||!navigator.onLine)&&tries[id]<3){bsList();continue}
+  else Object.assign(cur,{status:'notfound',why:!r||r.busy?'busy':''});
+  save();bsList();if(view==='lib'&&!document.querySelector('dialog[open]'))vLib();await nap(500)}}
+ finally{bsBusy=false;if(view==='lib'&&!document.querySelector('dialog[open]'))vLib()}}
+function bsRetry(ids){const set=ids&&new Set(ids);S.review.forEach(r=>{if(set?set.has(r.id):(r.status==='notfound'&&r.why==='busy'))Object.assign(r,{status:'looking',why:''})});save();vLib();bsWork()}
 function bsList(){const ul=$('#bs_list');if(!ul)return;const items=S.review.slice().reverse();
  ul.innerHTML=items.length?items.map(r=>`<li><b>${r.status==='looking'?'Looking up…':r.status==='notfound'?'No match found':esc(r.title)}</b><span>${esc(r.isbn)}${r.author?' · '+esc(r.author):''}</span></li>`).join(''):'<li class="note">Nothing scanned yet.</li>';
  $('#bs_count').textContent=S.review.length?`${S.review.length} in your review pile`:''}
@@ -910,11 +917,11 @@ function draftToBook(r){const b={id:uid(),title:r.title||('ISBN '+r.isbn),author
 function revAdd(ids){let n=0;ids.forEach(id=>{const r=S.review.find(x=>x.id===id);if(!r||r.status==='looking')return;S.books.push(draftToBook(r));S.review=S.review.filter(x=>x.id!==id);n++});
  if(n){save();vLib();toast(n===1?'Added to your shelves.':`Added ${n} books to your shelves.`)}}
 function reviewPanel(){if(!S.review||!S.review.length)return '';const ready=S.review.filter(r=>r.status==='ready');
- return `<div class="panel rv"><div class="rv-h"><h2>Review pile <span class="meta">(${S.review.length})</span></h2>${ready.length?`<button class="pri" data-act="revall">Add all ${ready.length} ready</button>`:''}</div>
+ return `<div class="panel rv"><div class="rv-h"><h2>Review pile <span class="meta">(${S.review.length})</span></h2><span class="rv-hb">${S.review.some(r=>r.status==='notfound'&&r.why==='busy')||(!bsBusy&&S.review.some(r=>r.status==='looking'))?`<button data-act="revretry">Retry lookups</button>`:''}${ready.length?`<button class="pri" data-act="revall">Add all ${ready.length} ready</button>`:''}</span></div>
  <p class="note" style="margin:0 0 10px">Scanned books wait here until you add them to your shelves.</p>
  <div class="rv-grid">${S.review.map(r=>{const cv=RFS(r.cover);return `<div class="rv-c">${cv?`<img src="${esc(cv)}" alt="">`:`<span class="rv-ph" style="background:${r.title?col(r):'#9A7A62'}">${r.status==='looking'?'…':''}</span>`}
- <div class="rv-i"><b>${r.status==='looking'?'Looking up…':r.status==='notfound'?'No match found':esc(r.title)}</b><small>${r.author?esc(r.author):'ISBN '+esc(r.isbn)}</small>${r.genres&&r.genres.length?`<small>${esc(r.genres.join(', '))}${r.formats&&r.formats[0]?' · '+esc(r.formats[0]):''}</small>`:''}${r.dupOf?`<small class="rv-dup">You already have “${esc(r.dupOf)}”</small>`:''}
- <div class="rv-b">${r.status==='looking'?'':`${r.status==='ready'?`<button class="pri" data-rv-add="${r.id}">Add</button>`:''}<button data-rv-edit="${r.id}">${r.status==='ready'?'Edit first':'Fill in'}</button>`}<button data-rv-del="${r.id}">Remove</button></div></div></div>`}).join('')}</div></div>`}
+ <div class="rv-i"><b>${r.status==='looking'?(bsBusy?'Looking up…':'Waiting to look up'):r.status==='notfound'?(r.why==='busy'?'Lookup didn’t get through':'No match found'):esc(r.title)}</b><small>${r.author?esc(r.author):'ISBN '+esc(r.isbn)}</small>${r.genres&&r.genres.length?`<small>${esc(r.genres.join(', '))}${r.formats&&r.formats[0]?' · '+esc(r.formats[0]):''}</small>`:''}${r.dupOf?`<small class="rv-dup">You already have “${esc(r.dupOf)}”</small>`:''}
+ <div class="rv-b">${r.status==='ready'?`<button class="pri" data-rv-add="${r.id}">Add</button>`:''}${r.status==='notfound'?`<button class="pri" data-rv-retry="${r.id}">Try again</button>`:''}<button data-rv-edit="${r.id}">${r.status==='ready'?'Edit first':'Fill in'}</button><button data-rv-del="${r.id}">Remove</button></div></div></div>`}).join('')}</div></div>`}
 $('#scd').addEventListener('close',scStop);$('#bsd').addEventListener('close',bsStop);$('#bs_file').onchange=bsPhotos;$('#bs_isbn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();bsSeen.delete(e.target.value.replace(/[^0-9Xx]/g,'').toUpperCase());bsAddIsbn(e.target.value,'typed');e.target.value=''}});if(S.review.some(r=>r.status==='looking'))setTimeout(bsWork,1500);$('#sc_file').onchange=scanPhoto;F('isbn').addEventListener('input',grSync);
 function streams(){
  const big=[],sm=[],ord={tape:0,phone:1},gk=(a,b)=>mainG(a.b).localeCompare(mainG(b.b));
@@ -967,12 +974,13 @@ document.addEventListener('click',e=>{
  if(x=g('[data-tr]')){trId=x.dataset.tr;$('#t_img').src=ref(S.trinkets.find(t=>t.id===trId).src);$('#td').showModal();return}
  if(x=g('[data-dl]')){const l=S.log.find(l=>l.id===x.dataset.dl);S.log=S.log.filter(l=>l.id!==x.dataset.dl);save();vToday();return}
  if(x=g('[data-rv-add]')){revAdd([x.dataset.rvAdd]);return}
+ if(x=g('[data-rv-retry]')){bsRetry([x.dataset.rvRetry]);return}
  if(x=g('[data-rv-edit]')){const r=S.review.find(y=>y.id===x.dataset.rvEdit);if(r)openBook(null,r);return}
  if(x=g('[data-rv-del]')){S.review=S.review.filter(y=>y.id!==x.dataset.rvDel);save();vLib();return}
  if(x=g('[data-det]')){openDet(x.dataset.det);return}
  if(x=g('[data-edit]')){openBook(x.dataset.edit);return}
  if(x=g('[data-act]')){const a=x.dataset.act;
-  if(a==='add')openBook();if(a==='batch')bsOpen();if(a==='bsdone'){bsStop();$('#bsd').close();view='lib';render()}if(a==='bsadd'){bsSeen.delete($('#bs_isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase());bsAddIsbn($('#bs_isbn').value,'typed');$('#bs_isbn').value=''}if(a==='bsphoto')$('#bs_file').click();if(a==='revall')revAdd(S.review.filter(r=>r.status==='ready').map(r=>r.id));if(a==='ddedit'){$('#dd').close();openBook(detId)}if(a==='od'){$('#o_cid').value=localStorage.getItem('bs-cid')||'';$('#o_auth').value=localStorage.getItem('bs-auth')||'common';$('#o_st').textContent=$('#cs').textContent;$('#o_ru').textContent=RU();$('#odd').showModal()}if(a==='oconn')oConn();if(a==='osync')pull();if(a==='oout')oOut();if(a==='oreset')oReset();
+  if(a==='add')openBook();if(a==='batch')bsOpen();if(a==='bsdone'){bsStop();$('#bsd').close();view='lib';render()}if(a==='bsadd'){bsSeen.delete($('#bs_isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase());bsAddIsbn($('#bs_isbn').value,'typed');$('#bs_isbn').value=''}if(a==='bsphoto')$('#bs_file').click();if(a==='revretry'){bsRetry();bsWork()}if(a==='revall')revAdd(S.review.filter(r=>r.status==='ready').map(r=>r.id));if(a==='ddedit'){$('#dd').close();openBook(detId)}if(a==='od'){$('#o_cid').value=localStorage.getItem('bs-cid')||'';$('#o_auth').value=localStorage.getItem('bs-auth')||'common';$('#o_st').textContent=$('#cs').textContent;$('#o_ru').textContent=RU();$('#odd').showModal()}if(a==='oconn')oConn();if(a==='osync')pull();if(a==='oout')oOut();if(a==='oreset')oReset();
   if(a==='save')saveBook();if(a==='scan')scan();if(a==='lookup')lookup();if(a==='scstop')scStop();if(a==='scphoto'){scStop();$('#sc_file').click()}if(a==='rmcov'){pend.cov='';imgNote()}if(a==='rmsp'){pend.sp='';F('usesp').checked=false;imgNote()}
   if(a==='close')x.closest('dialog').close();
   if(a==='log')logIt();
