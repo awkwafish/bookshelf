@@ -176,6 +176,18 @@ label{display:block;font-size:13px;color:var(--muted)}label input,label select,l
 .rp-lg li:first-child{border-top:0}.rp-lg svg{flex:none;margin-top:3px}
 .lg-n{flex:1;min-width:0}.lg-n small{display:block;color:var(--muted);font-size:12px}.lg-v{color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .rp-tip{min-height:1.4em;margin:6px 0 0}
+.gb-h{font:600 13px/1.2 Figtree,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:10px 0 6px}
+.gb{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,max-content) minmax(60px,1fr) auto;gap:7px 10px;align-items:center;font-size:14px}
+.gb li{display:contents}
+.gb-n{max-width:42vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+button.gb-n{background:none;border:0;padding:2px 0;margin:0;font:inherit;color:var(--ink);cursor:pointer;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px;border-radius:4px;min-height:28px}
+button.gb-n.on{font-weight:600;text-decoration-color:var(--accent)}
+.gb-t{height:12px;border-radius:0 4px 4px 0;background:color-mix(in srgb,var(--line) 35%,transparent)}
+.gb-f{display:block;height:100%;border-radius:0 4px 4px 0;background:var(--accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 45%,transparent)}
+.gb-v{color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}
+.gs{margin-bottom:14px}.gs summary{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;cursor:pointer;list-style:none}.gs summary::-webkit-details-marker{display:none}
+.gs summary h2{margin:0}.gs summary::after{content:'▾';margin-left:auto;color:var(--muted)}.gs:not([open]) summary::after{content:'▸'}
+.gs[open] summary{margin-bottom:10px}.gs-more{margin-top:10px;font-size:14px;padding:4px 12px}
 @media (prefers-reduced-motion:reduce){.pie path{transition:none}}
 a.gr{color:var(--accent);font-weight:600;font-size:14px;text-underline-offset:3px}
 .grid.books{grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:20px 14px}
@@ -289,7 +301,14 @@ const ymd=d=>d.toLocaleDateString('en-CA');
 const today=()=>ymd(new Date());
 const fmM=m=>m>=60?Math.floor(m/60)+'h '+(m%60)+'m':(m||0)+'m';
 const hash=s=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
-const col=b=>PAL[hash(b.title)%PAL.length];
+let GCM={k:null,m:{}};
+function gcol(name){const key=String(name||'Unsorted').trim().toLowerCase(),bs=(typeof S==='object'&&S&&S.books)||[];
+ const mains=[...new Set(bs.map(b=>String(b.genres[0]||'Unsorted').trim().toLowerCase()))].sort(),rest=[...new Set(bs.flatMap(b=>b.genres.map(g=>String(g).trim().toLowerCase())))].filter(g=>!mains.includes(g)).sort(),k=mains.join('|')+'||'+rest.join('|');
+ if(GCM.k!==k){const m={},used=new Set();[...mains,...rest].forEach(g=>{let i=hash(g)%PAL.length,n=0;while(used.has(i)&&n++<PAL.length)i=(i+1)%PAL.length;if(used.size>=PAL.length)used.clear();used.add(i);m[g]=PAL[i]});GCM={k,m}}
+ return GCM.m[key]||PAL[hash(key)%PAL.length]}
+const col=b=>gcol((b.genres&&b.genres[0])||'Unsorted');
+const inSet=b=>!!b.series&&S.books.filter(x=>x.series===b.series).length>1;
+const ak=b=>(inSet(b)?b.series:b.title).trim().toLowerCase().replace(/^(the|an|a)\s+/,'')+'|'+String(b.sno||0).padStart(4,'0')+'|'+b.title.toLowerCase();
 const mainG=b=>b.genres[0]||'Unsorted';
 const phys=b=>b.formats.includes('hardcover')||b.formats.includes('paperback');
 const ST={backlog:'To read',reading:'Reading now',read:'Read'};
@@ -319,36 +338,34 @@ const grUrl=i=>{i=String(i||'').replace(/[^0-9Xx]/g,'');return i.length===10||i.
 function grSync(){const u=grUrl(F('isbn').value),a=$('#f_gr');a.classList.toggle('hide',!u);if(u)a.href=u}
 /* ---------- Books read tracker ---------- */
 const GC=['#666E40','#DD9A7A','#364062','#F8DD94','#3C100E'];
-let RP='year';try{RP=localStorage.getItem('bs-rp')||'year'}catch(e){}
+let RP='year';
 const RPN={all:'all time',year:'this year',month:'this month'};
 function readIn(p){const n=new Date(),y=String(n.getFullYear()),m=today().slice(0,7);
  return S.books.filter(b=>b.status==='read'&&(p==='all'||(p==='year'?(b.fin?b.fin.startsWith(y):String(b.year)===y):!!b.fin&&b.fin.startsWith(m))))}
 function genreSlots(){const c={};S.books.filter(b=>b.status==='read').forEach(b=>{const g=mainG(b);c[g]=(c[g]||0)+1});
  const ord=Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b)),m={};ord.forEach((g,i)=>m[g]=i<GC.length?i:-1);return m}
-function slicePath(a0,a1,r){if(a1-a0>=Math.PI*2-1e-6)return `M100 ${100-r}A${r} ${r} 0 1 1 99.99 ${100-r}Z`;
- const p=a=>[100+r*Math.sin(a),100-r*Math.cos(a)].map(v=>v.toFixed(2)).join(' ');return `M100 100L${p(a0)}A${r} ${r} 0 ${a1-a0>Math.PI?1:0} 1 ${p(a1)}Z`}
+function barList(rows,total,pick){const mx=Math.max(1,...rows.map(r=>r.n));
+ return `<ul class="gb">${rows.map(r=>{const v=`${r.n}${total?` · ${Math.round(r.n/total*100)}%`:''}`;return `<li>${pick?`<button class="gb-n${pick.on(r.name)?' on':''}" data-gq="${esc(r.name)}" aria-pressed="${pick.on(r.name)}" title="Show ${esc(r.name)} books">${esc(r.name)}</button>`:`<span class="gb-n">${esc(r.name)}</span>`}<span class="gb-t" aria-hidden="true"><span class="gb-f" style="width:${Math.max(2,r.n/mx*100).toFixed(1)}%;background:${gcol(r.name)}"></span></span><span class="gb-v">${v}</span></li>`}).join('')}</ul>`}
 function readPanel(){
- const list=readIn(RP),slots=genreSlots(),cnt={};list.forEach(b=>{const g=mainG(b);cnt[g]=(cnt[g]||0)+1});
- const n=list.length,groups={};
- Object.keys(cnt).forEach(g=>{const s=slots[g];const k=s>=0?'s'+s:'other';(groups[k]=groups[k]||{slot:s>=0?s:99,names:[],n:0}).names.push(g);groups[k].n+=cnt[g]});
- const sl=Object.values(groups).sort((a,b)=>a.slot-b.slot);
- const fill=s=>s.slot<99?GC[s.slot]:'url(#rp-other)',label=s=>s.slot<99?s.names[0]:'Other',pct=v=>Math.round(v/n*100)+'%';
- let a=0;const paths=sl.map(s=>{const a1=a+s.n/n*Math.PI*2,d=slicePath(a,a1,92);a=a1;return `<path d="${d}" fill="${fill(s)}" data-sl="${esc(label(s))}: ${s.n} ${s.n===1?'book':'books'}, ${pct(s.n)}${s.slot<99?'':' ('+esc(s.names.join(', '))+')'}" tabindex="0"></path>`}).join('');
- const sw=s=>`<svg width="14" height="14" aria-hidden="true"><rect width="14" height="14" rx="3" fill="${fill(s)}" stroke="var(--muted)" stroke-width=".75"/></svg>`;
- const legend=sl.map(s=>s.slot<99?`<li data-sl-k="${esc(label(s))}">${sw(s)}<span class="lg-n">${esc(label(s))}</span><span class="lg-v">${s.n} · ${pct(s.n)}</span></li>`
-  :`<li>${sw(s)}<span class="lg-n">Other<small>${s.names.map(g=>esc(g)+' '+cnt[g]).join(', ')}</small></span><span class="lg-v">${s.n} · ${pct(s.n)}</span></li>`).join('');
+ const list=readIn(RP),cnt={};list.forEach(b=>{const g=mainG(b);cnt[g]=(cnt[g]||0)+1});
+ const n=list.length,rows=Object.keys(cnt).map(g=>({name:g,n:cnt[g]})).sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name));
  const undated=RP==='month'?S.books.filter(b=>b.status==='read'&&!b.fin&&String(b.year)===String(new Date().getFullYear())).length:0;
- return `<div class="panel rp"><div class="rp-h"><h2>Books read</h2><div class="seg" role="group" aria-label="Time period">${['all','year','month'].map(k=>`<button data-rp="${k}" class="${RP===k?'on':''}" aria-pressed="${RP===k}">${k==='all'?'All time':k==='year'?'This year':'This month'}</button>`).join('')}</div></div>
+ return `<div class="panel rp"><div class="rp-h"><h2>Books read</h2><div class="seg" role="group" aria-label="Time period">${['year','month','all'].map(k=>`<button data-rp="${k}" class="${RP===k?'on':''}" aria-pressed="${RP===k}">${k==='all'?'All time':k==='year'?'This year':'This month'}</button>`).join('')}</div></div>
  <p class="rp-big"><b>${n}</b> ${n===1?'book':'books'} read ${RPN[RP]}</p>
- ${n?`<div class="rp-body"><svg class="pie" viewBox="0 0 200 200" role="img" aria-label="Books read ${RPN[RP]} by genre"><defs><pattern id="rp-other" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#CEAC84"/><rect width="3" height="8" fill="#5E4536"/></pattern></defs>${paths}<circle cx="100" cy="100" r="92.5" fill="none" stroke="var(--muted)" stroke-width="1" opacity=".55"/></svg>
- <div class="rp-side"><ul class="rp-lg">${legend}</ul><p class="rp-tip note" aria-live="polite">Tap a slice to see its count.</p></div></div>
- <p class="note" style="margin:6px 0 0">Each book counts once, under its first genre.${undated?` ${undated} ${undated===1?'book':'books'} read this year ${undated===1?'has':'have'} no finish date, so ${undated===1?'it isn’t':'they aren’t'} counted here. Add a date finished to include ${undated===1?'it':'them'}.`:''}</p>`
+ ${n?`<h3 class="gb-h">By genre</h3>${barList(rows,n)}
+ <p class="note" style="margin:8px 0 0">Each book counts once, under its first genre.${undated?` ${undated} ${undated===1?'book':'books'} read this year ${undated===1?'has':'have'} no finish date, so ${undated===1?'it isn’t':'they aren’t'} counted here. Add a date finished to include ${undated===1?'it':'them'}.`:''}</p>`
  :`<div class="empty">${RP==='all'?'Mark a book as Read and it will show up here.':'No books finished '+RPN[RP]+' yet. Mark a book as Read to add it.'}</div>`}</div>`
 }
-function rpTip(t){const e=document.querySelector('.rp-tip');if(e)e.textContent=t}
-document.addEventListener('pointerover',e=>{const p=e.target.closest&&e.target.closest('.pie path');if(p){rpTip(p.dataset.sl);document.querySelectorAll('.pie path').forEach(x=>x.classList.toggle('dim',x!==p))}});
-document.addEventListener('pointerout',e=>{if(e.target.closest&&e.target.closest('.pie path')){document.querySelectorAll('.pie path').forEach(x=>x.classList.remove('dim'))}});
-document.addEventListener('focusin',e=>{const p=e.target.closest&&e.target.closest('.pie path');if(p)rpTip(p.dataset.sl)});
+let GSALL=false,GSOPEN=true;try{GSOPEN=localStorage.getItem('bs-gs')!=='0'}catch(e){}
+function genreStats(){const m=new Map();
+ S.books.forEach(b=>[...new Set((b.genres.length?b.genres:['Unsorted']).map(g=>g.trim().toLowerCase()).filter(Boolean))].forEach(k=>{const o=m.get(k)||{name:cap((b.genres.find(g=>g.trim().toLowerCase()===k)||'Unsorted').trim()),n:0};o.n++;m.set(k,o)}));
+ return[...m.values()].sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name))}
+function statsPanel(){const rows=genreStats(),nb=S.books.length;if(!nb)return '';const show=GSALL?rows:rows.slice(0,8),q=filt.q.trim().toLowerCase();
+ return `<details class="panel gs" ${GSOPEN?'open':''}><summary><h2>Library genres</h2><span class="meta">${nb} ${nb===1?'book':'books'} · ${rows.length} ${rows.length===1?'genre':'genres'}</span></summary>
+ ${barList(show,0,{on:n=>n.toLowerCase()===q})}
+ ${rows.length>8?`<button class="gs-more" data-gsall="1">${GSALL?'Show top 8':'Show all '+rows.length+' genres'}</button>`:''}
+ <p class="note" style="margin:8px 0 0">A book with several genres counts under each one. Tap a genre to show just those books${q&&rows.some(r=>r.name.toLowerCase()===q)?', or tap it again to show everything':''}.</p></details>`}
+document.addEventListener('toggle',e=>{if(e.target.matches&&e.target.matches('details.gs')){GSOPEN=e.target.open;try{localStorage.setItem('bs-gs',GSOPEN?'1':'0')}catch(x){}}},true);
 function vToday(){
  const t=today(),open=S.books.filter(b=>b.status!=='read').sort((a,b)=>(a.status==='reading'?0:1)-(b.status==='reading'?0:1));
  const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(ymd(d))}
@@ -392,7 +409,7 @@ function logIt(){
 }
 /* ---------- Library ---------- */
 function vLib(){
- $('#app').innerHTML=`${reviewPanel()}<div class="bar"><input id="q" placeholder="Search title, author or genre" value="${esc(filt.q)}">
+ $('#app').innerHTML=`${reviewPanel()}${statsPanel()}<div class="bar"><input id="q" placeholder="Search title, author or genre" value="${esc(filt.q)}">
  <select id="fs"><option value="all">All statuses</option>${Object.entries(ST).map(([k,v])=>`<option value="${k}" ${filt.s===k?'selected':''}>${v}</option>`).join('')}</select>
  <select id="ff"><option value="all">All formats</option>${['hardcover','paperback','ebook','audiobook'].map(k=>`<option value="${k}" ${filt.f===k?'selected':''}>${k[0].toUpperCase()+k.slice(1)}</option>`).join('')}</select></div>
  ${S.books.some(b=>b.sample)?'<p class="note">These are sample books. <button data-act="clearsamples">Remove samples</button></p>':''}<div id="list" class="grid books"></div>`;
@@ -554,7 +571,7 @@ const clk=()=>new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}
 setInterval(()=>document.querySelectorAll('.tv-clock').forEach(e=>e.textContent=clk()),30000);
 const TV_REMOTE=`<svg class="tv-rm" viewBox="0 0 240 70" aria-hidden="true"><rect x="4" y="6" width="232" height="58" rx="14" fill="#2b2731" stroke="#1b1420" stroke-width="5"/><rect x="16" y="16" width="70" height="38" rx="8" fill="#3a3541"/><circle cx="32" cy="28" r="6" fill="#8F4B4B" stroke="#1b1420" stroke-width="2.5"/><g fill="#d9d2c4" stroke="#1b1420" stroke-width="2">${[0,1,2,3].map(i=>[0,1].map(j=>`<rect x="${100+i*20}" y="${18+j*18}" width="13" height="10" rx="3"/>`).join('')).join('')}</g><circle cx="200" cy="35" r="17" fill="#364062" stroke="#1b1420" stroke-width="3"/><path d="M200 24V46M189 35H211" stroke="#F0E1BE" stroke-width="4" stroke-linecap="round"/><path d="M22 14H70" stroke="rgba(255,255,255,.18)" stroke-width="4" stroke-linecap="round"/></svg>`;
 function tvHtml(list,TW){
- const order={reading:0,backlog:1,read:2},eb=list.slice().sort((a,b)=>order[a.status]-order[b.status]||sk(a).localeCompare(sk(b)));
+ const order={reading:0,backlog:1,read:2},eb=list.slice().sort((a,b)=>order[a.status]-order[b.status]||ak(a).localeCompare(ak(b)));
  const now=eb.find(b=>b.status==='reading')||eb.find(b=>b.status==='backlog')||eb[0];
  const tag=b=>b.status==='reading'?'NOW READING':b.status==='read'?`READ${b.year?' '+b.year:''}`:'UP NEXT';
  const row=(b,i)=>`<button class="tv-row" data-edit="${b.id}" title="${esc(b.title)} by ${esc(b.author)} (ebook)"><span class="tv-ch">${i+2}<small>${esc((mainG(b)||'BOOK').replace(/[^A-Za-z]/g,'').slice(0,3).toUpperCase()||'BK')}</small></span><span class="tv-ti"><b>${esc(b.title)}</b><small>${esc(b.author||'')}</small></span><span class="tv-tag t-${b.status}">${tag(b)}</span></button>`;
@@ -684,7 +701,7 @@ function mk(list){
  const fl=()=>{if(buf.length){const c=buf;add({w:4.2,html:h=>'<div class="k2">'+c.map(p=>piece(p,h)).join('')+'</div>'});buf=[]}};
  const close=()=>{fl();if(g!==null&&gw<sw){const w=sw-gw;add({w,html:()=>`<i class="sp2" style="width:${U(w)}"></i>`})}};
  list.forEach(p=>{const G=mainG(p.b);
-  if(G!==g){close();g=G;gw=0;sw=Math.min(6.2,1+G.length*.25);out.push({div:1,w:0,html:h=>`<div class="d2" aria-hidden="true"><div class="hg"><i class="st l"></i><i class="st r"></i><div class="sg">${esc(G)}</div></div></div>`})}
+  
   if(p.kind==='tape'){buf.push(p);if(buf.length===2)fl()}else{fl();add({w:p.kind==='book'?bwid(p):2.9,html:h=>piece(p,h)})}});
  close();return out
 }
@@ -926,9 +943,9 @@ $('#scd').addEventListener('close',scStop);$('#bsd').addEventListener('close',bs
 function streams(){
  const big=[],sm=[],ord={tape:0,phone:1},gk=(a,b)=>mainG(a.b).localeCompare(mainG(b.b));
  const cm=[];S.books.forEach(b=>pieces(b).forEach(p=>(p.kind==='book'?big:p.kind==='comic'?cm:sm).push(p)));
- big.sort((a,b)=>gk(a,b)||sk(a.b).localeCompare(sk(b.b)));
- sm.sort((a,b)=>gk(a,b)||ord[a.kind]-ord[b.kind]||sk(a.b).localeCompare(sk(b.b)));
- cm.sort((a,b)=>(a.b.series||a.b.title).localeCompare(b.b.series||b.b.title)||(+a.b.sno||0)-(+b.b.sno||0)||a.b.title.localeCompare(b.b.title));
+ big.sort((a,b)=>ak(a.b).localeCompare(ak(b.b)));
+ sm.sort((a,b)=>ord[a.kind]-ord[b.kind]||ak(a.b).localeCompare(ak(b.b)));
+ cm.sort((a,b)=>ak(a.b).localeCompare(ak(b.b)));
  return[mk(big),mkSmall(sm),cm]
 }
 function vShelf(){
@@ -944,7 +961,7 @@ function vShelf(){
    cbs+=`<div class="cb" style="left:${c[0]}%;width:${c[1]}%;top:${c[2]}%;height:${c[3]}%">${[...L,...hh.slice(0,sp),...M,...hh.slice(sp),...R].join('')}</div>`});
   cases+=`<div class="bc" style="--u:${px}px;width:${W}px;height:${H}px">${cbs}</div>`}
  const RW=Math.round(Math.max(170,Math.min(340,($('#app').clientWidth||400)-40,(innerHeight-120)/RACK_R))),rkHtml=Array.from({length:Math.ceil(cm.length/(RACK_FRONT+RACK_SIDE))},(_,k)=>rackHtml(cm.slice(k*(RACK_FRONT+RACK_SIDE),(k+1)*(RACK_FRONT+RACK_SIDE)),RW,k)).join('');
- const byG=(a,b)=>mainG(a).localeCompare(mainG(b))||sk(a).localeCompare(sk(b)),auds=S.books.filter(b=>b.formats.includes('audiobook')).sort(byG),ebs=S.books.filter(b=>b.formats.includes('ebook'));
+ const byG=(a,b)=>ak(a).localeCompare(ak(b)),auds=S.books.filter(b=>b.formats.includes('audiobook')).sort(byG),ebs=S.books.filter(b=>b.formats.includes('ebook'));
  const stHtml=stands.map(st=>`<div class="vs" role="group" aria-label="Audiobooks and ebooks" style="--u:${su}px;width:${SW}px;height:${SH}px">${st.map((items,ri)=>{const r=rows[ri];if(r.stack)return stackHtml(items,ri);return items.length?`<div class="vr" style="left:${r.x}%;top:${r.y}%;width:calc(var(--u)*${r.len.toFixed(2)});transform:rotate(${r.ang.toFixed(1)}deg)"><div class="vi" style="${r.end?`right:calc(var(--u)*${r.e});flex-direction:row-reverse`:`left:calc(var(--u)*${r.o})`}${r.flat&&!r.stack?';transform:translateY(50%)':''}">${r.stack?`<div class="sk" style="margin-left:calc(var(--u)*${((r.len-4.8)/2).toFixed(2)})">${items.slice(0,4).map(i=>i.html(11,true)).join('')}${items.length>4?`<div class="sk2">${items.slice(4).map(i=>i.html(11,true)).join('')}</div>`:''}</div>`:items.map(i=>i.html(11,r.flat)).join('')}</div></div>`:''}).join('')}<div class="vs-fg"></div></div>`).join('');
  $('#app').innerHTML=`<div class="bar"><label class="pri" style="flex:1 1 140px;text-align:center;cursor:pointer;border-radius:999px;padding:6px 14px;background:var(--accent);color:var(--on);font-size:15px">Add a picture frame<input id="tfile" type="file" accept="image/*" class="hide"></label></div>
  <div class="bcw">${cases}${auds.length?ctHtml(auds,CW):''}${ebs.length?tvHtml(ebs,TW):''}${rkHtml}</div>
@@ -966,8 +983,10 @@ let rzT;addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(()=>{if(
 document.addEventListener('click',e=>{
  const g=s=>e.target.closest(s);let x;
  if(g('a[href]'))return;
- if(x=g('[data-rp]')){RP=x.dataset.rp;try{localStorage.setItem('bs-rp',RP)}catch(e){}vToday();return}
- if(x=g('.pie path')){rpTip(x.dataset.sl);return}
+ if(x=g('[data-rp]')){RP=x.dataset.rp;vToday();return}
+ if(x=g('[data-gq]')){filt.q=filt.q.toLowerCase()===x.dataset.gq.toLowerCase()?'':x.dataset.gq;vLib();return}
+ if(x=g('[data-gsall]')){GSALL=!GSALL;vLib();return}
+ 
  if(x=g('[data-tab]')){view=x.dataset.tab;render();return}
  if(x=g('[data-mode]')){mode=x.dataset.mode;vShelf();return}
  if(x=g('[data-ta]')){trAct(x.dataset.ta);return}
