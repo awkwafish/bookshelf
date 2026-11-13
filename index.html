@@ -19,9 +19,10 @@ body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Figtree,sy
 h1,h2,h3{font-family:Fraunces,Georgia,serif;margin:0}
 header{max-width:980px;margin:0 auto;padding:18px 16px 6px}
 h1{font-size:28px;font-weight:700}
-nav{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:flex-start}
-.tabcol{display:grid;gap:6px;justify-items:start}.tabcol>div{display:flex;gap:6px;flex-wrap:wrap}
-.acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+nav{display:flex;gap:6px;margin-top:10px;align-items:flex-start}
+.tabcol{display:grid;gap:6px;justify-items:start;flex:1 1 auto;min-width:0}.tabcol>div{display:flex;gap:6px;flex-wrap:wrap}
+@media (max-width:440px){#nav button{padding:7px 11px;font-size:14px}#nav,.tabcol,.tabcol>div{gap:5px}}
+.acts{display:flex;gap:6px;flex:none;margin-left:auto;justify-content:flex-end}.acts button{white-space:nowrap}
 #nav button[data-tab="player"]{background:#8F4B4B;border-color:#8F4B4B;color:#F9F0DA}
 #nav button[data-tab="player"].on{background:#3C100E;border-color:#3C100E;color:#F9F0DA;box-shadow:0 0 0 2px var(--bg),0 0 0 4px #8F4B4B}
 .sb-o{display:grid;gap:10px}.sb-o button{display:grid;gap:2px;text-align:left;padding:12px 14px;border-radius:12px}.sb-o button small{color:var(--muted);font-weight:400}
@@ -266,7 +267,7 @@ body.has-apb main{padding-bottom:110px}body.has-apb #toast{bottom:calc(84px + en
 <h1>My bookshelf</h1>
 <nav id="nav">
 <div class="tabcol"><div><button data-tab="shelf">Bookshelf</button><button data-tab="lib">Library</button><button data-tab="today">Stats</button></div><div><button data-tab="player">Player</button></div></div>
-<span class="sp"></span><div class="acts"><button class="pri hide" data-act="add" data-on="lib">Add book</button><button class="hide" data-act="batch" data-on="lib">Scan several</button><button class="hide" data-act="sb" data-on="today">Sync &amp; backup</button></div>
+<div class="acts"><button class="pri hide" data-act="addm" data-on="lib">Add book</button><button class="hide" data-act="sb" data-on="today">Sync &amp; backup</button></div>
 </nav>
 <p id="cs" class="note" style="margin:6px 0 0"></p>
 </header>
@@ -316,6 +317,7 @@ body.has-apb main{padding-bottom:110px}body.has-apb #toast{bottom:calc(84px + en
 <div class="row"><button id="ab_use" class="pri hide" data-act="abuse"></button><button id="ab_auto" class="pri hide" data-act="amscan">Match books in this folder</button><button id="ab_rm" class="danger hide" data-act="abrm">Remove link</button><button data-act="close">Cancel</button></div>
 </div></dialog>
 <div id="apb" class="hide" role="region" aria-label="Audiobook player"><i id="apb_bar"></i><button id="apb_open" data-act="apopen" aria-label="Open player"><span id="apb_cv" aria-hidden="true"></span><span class="apb-tx"><b id="apb_t"></b><small id="apb_s"></small></span></button><button id="apb_pp" class="pri" data-act="appp" aria-label="Play"></button><button data-act="apstop" aria-label="Stop and close player">✕</button></div>
+<dialog id="addd" aria-labelledby="add_t"><div class="fm"><h2 id="add_t">Add books</h2><div class="sb-o"><button data-act="add"><b>Add one book</b><small>Type it in, or scan its barcode to fill in the details</small></button><button data-act="batch"><b>Scan several</b><small>Scan barcodes one after another into your review pile</small></button><button data-act="blopen"><b>Import a list</b><small>Paste or upload a list of ISBNs</small></button></div><div class="row"><button data-act="close">Close</button></div></div></dialog>
 <dialog id="sbd" aria-labelledby="sb_t"><div class="fm"><h2 id="sb_t">Sync &amp; backup</h2><div class="sb-o"><button data-act="od"><b>OneDrive sync</b><small>Connect, sync now or sign out</small></button><button data-act="backup"><b>Backup</b><small>Copy your library as text, or restore from a copy</small></button></div><div class="row"><button data-act="close">Close</button></div></div></dialog>
 <dialog id="amd" aria-labelledby="am_t"><div class="fm"><h2 id="am_t">Matched audiobooks</h2><p id="am_note" class="note" style="margin:0"></p><ul id="am_list" class="ap-list am-list"></ul><div class="row"><button id="am_go" class="pri" data-act="amlink">Link selected</button><button data-act="close">Cancel</button></div></div></dialog>
 <dialog id="bld" aria-labelledby="bl_t"><div class="fm"><h2 id="bl_t">Import a list of ISBNs</h2><p class="note" style="margin:0">Paste your list, or choose a text or CSV file. Anything that isn’t an ISBN is ignored, so extra columns, titles and dashes are fine.</p><textarea id="bl_txt" class="bl-t" placeholder="9780593440940&#10;978-1-250-84736-2&#10;…" aria-label="ISBN list"></textarea><p id="bl_n" class="note" role="status" style="margin:0;font-weight:600"></p><input id="bl_file" type="file" accept=".txt,.csv,.tsv,text/plain,text/csv" class="hide"><div class="row"><button class="pri" data-act="blgo">Add to review pile</button><button data-act="blfile">Choose a file</button><button data-act="close">Cancel</button></div></div></dialog>
@@ -1238,6 +1240,7 @@ document.addEventListener('click',e=>{
  if(x=g('[data-pll]')){abOpen(x.dataset.pll);return}
  if(x=g('[data-edit]')){openDet(x.dataset.edit);return}
  if(x=g('[data-act]')){const a=x.dataset.act;
+  if(a==='addm')$('#addd').showModal();if((a==='add'||a==='batch'||a==='blopen')&&$('#addd').open)$('#addd').close();
   if(a==='sb')$('#sbd').showModal();if((a==='od'||a==='backup')&&$('#sbd').open)$('#sbd').close();
   if(a==='add')openBook();if(a==='batch')bsOpen();if(a==='bsdone'){bsStop();$('#bsd').close();view='lib';render()}if(a==='bsadd'){bsSeen.delete($('#bs_isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase());bsAddIsbn($('#bs_isbn').value,'typed');$('#bs_isbn').value=''}if(a==='bsphoto')$('#bs_file').click();if(a==='blopen'){blCount();$('#bld').showModal()}if(a==='blfile')$('#bl_file').click();if(a==='blgo')blGo();if(a==='revretry'){bsRetry();bsWork()}if(a==='revall')revAdd(S.review.filter(r=>r.status==='ready').map(r=>r.id));if(a==='ddedit'){$('#dd').close();openBook(detId)}if(a==='od'){$('#o_cid').value=localStorage.getItem('bs-cid')||'';$('#o_auth').value=localStorage.getItem('bs-auth')||'common';$('#o_st').textContent=$('#cs').textContent;$('#o_ru').textContent=RU();$('#odd').showModal()}if(a==='oconn')oConn();if(a==='osync')pull();if(a==='oout')oOut();if(a==='oreset')oReset();
   if(a==='save')saveBook();if(a==='scan')scan();if(a==='lookup')lookup();if(a==='scstop')scStop();if(a==='scphoto'){scStop();$('#sc_file').click()}if(a==='rmcov'){pend.cov='';imgNote()}if(a==='rmsp'){pend.sp='';F('usesp').checked=false;imgNote()}
