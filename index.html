@@ -19,7 +19,22 @@ body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Figtree,sy
 h1,h2,h3{font-family:Fraunces,Georgia,serif;margin:0}
 header{max-width:980px;margin:0 auto;padding:18px 16px 6px}
 h1{font-size:28px;font-weight:700}
-nav{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:flex-start}
+.tabcol{display:grid;gap:6px;justify-items:start}.tabcol>div{display:flex;gap:6px;flex-wrap:wrap}
+.acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+#nav button[data-tab="player"]{background:#8F4B4B;border-color:#8F4B4B;color:#F9F0DA}
+#nav button[data-tab="player"].on{background:#3C100E;border-color:#3C100E;color:#F9F0DA;box-shadow:0 0 0 2px var(--bg),0 0 0 4px #8F4B4B}
+.sb-o{display:grid;gap:10px}.sb-o button{display:grid;gap:2px;text-align:left;padding:12px 14px;border-radius:12px}.sb-o button small{color:var(--muted);font-weight:400}
+.am-list label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;min-height:44px;color:var(--ink);font-size:15px}.am-list input{width:auto;margin:3px 0 0;flex:none}.am-list span{min-width:0;overflow-wrap:anywhere}.am-list small{display:block;color:var(--muted)}
+.pv-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 10px}.pv-top h2{margin:0}
+.pv-now{margin-bottom:14px}.pv-h{margin:4px 0 10px}
+.pv-list{display:grid;gap:8px}
+.pv-r{display:flex;gap:12px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.pv-r.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.pv-c{flex:none;width:40px;height:60px;padding:0;border-radius:4px;border:1.5px solid #1b1420}
+.pv-i{flex:1;min-width:0;display:grid}.pv-i b{overflow-wrap:anywhere}.pv-i small{color:var(--muted)}
+.pv-r>button:last-child{flex:none}
+
 button,select,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.bk:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -246,8 +261,8 @@ body.has-apb main{padding-bottom:110px}body.has-apb #toast{bottom:calc(84px + en
 <header>
 <h1>My bookshelf</h1>
 <nav id="nav">
-<button data-tab="today">Today</button><button data-tab="lib">Library</button><button data-tab="shelf">Bookshelf</button>
-<span class="sp"></span><button class="pri" data-act="add">Add book</button><button data-act="batch">Scan several</button><button data-act="od">OneDrive</button><button data-act="backup">Backup</button>
+<div class="tabcol"><div><button data-tab="shelf">Bookshelf</button><button data-tab="lib">Library</button><button data-tab="today">Stats</button></div><div><button data-tab="player">Player</button></div></div>
+<span class="sp"></span><div class="acts"><button class="pri hide" data-act="add" data-on="lib">Add book</button><button class="hide" data-act="batch" data-on="lib">Scan several</button><button class="hide" data-act="sb" data-on="today">Sync &amp; backup</button></div>
 </nav>
 <p id="cs" class="note" style="margin:6px 0 0"></p>
 </header>
@@ -279,7 +294,7 @@ body.has-apb main{padding-bottom:110px}body.has-apb #toast{bottom:calc(84px + en
 </div></dialog>
 
 <dialog id="dd" aria-labelledby="dd_t"><div class="fm"><div id="dd_body"></div><div class="row"><button id="dd_listen" class="pri hide" data-act="aplisten">Listen</button><button class="pri" data-act="ddedit">Edit book</button><button id="dd_alink" class="hide" data-act="aplink">Link audio</button><button data-act="close">Close</button></div></div></dialog>
-<dialog id="apd" aria-labelledby="ap_t"><div class="fm ap">
+<div id="ap_home" hidden><div class="fm ap" id="ap_box">
 <div class="ap-top"><span id="ap_cv" class="ap-cv" aria-hidden="true"></span><div class="ap-tt"><h2 id="ap_t"></h2><div id="ap_tr" class="meta"></div><div id="ap_all" class="meta"></div></div></div>
 <div class="ap-seek"><span id="ap_cur">0:00</span><input id="ap_seek" type="range" min="0" max="1" step="1" value="0" aria-label="Position in this part"><span id="ap_dur">--:--</span></div>
 <div class="ap-ctl"><button data-act="apprev" aria-label="Previous part" title="Previous part">⏮</button><button data-act="apback" aria-label="Back 30 seconds">−30</button><button id="ap_pp" class="pri ap-pp" data-act="appp" aria-label="Play"></button><button data-act="apfwd" aria-label="Forward 30 seconds">+30</button><button data-act="apnext" aria-label="Next part" title="Next part">⏭</button></div>
@@ -287,16 +302,18 @@ body.has-apb main{padding-bottom:110px}body.has-apb #toast{bottom:calc(84px + en
 <div class="row ap-opt"><label>Speed<select id="ap_speed"><option value="0.75">0.75×</option><option value="1">1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="1.75">1.75×</option><option value="2">2×</option></select></label>
 <label>Sleep timer<select id="ap_sleep"><option value="0">Off</option><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">1 hour</option><option value="end">End of this part</option></select></label></div>
 <ul id="ap_list" class="ap-list hide" aria-label="Parts"></ul>
-<div class="row"><button data-act="apdet">Book details</button><button data-act="apstop">Stop</button><button data-act="close">Hide player</button></div>
-</div></dialog>
+<div class="row"><button data-act="apdet">Book details</button><button data-act="apstop">Stop</button></div>
+</div></div>
 <dialog id="abd" aria-labelledby="ab_t"><div class="fm">
 <h2 id="ab_t">Audio</h2>
 <p class="note" style="margin:0">Pick one audio file, or open the folder that holds the book’s parts and choose Use this folder.</p>
 <p id="ab_path" class="meta" style="margin:0;font-weight:600"></p>
 <ul id="ab_list" class="ap-list ab-list"></ul>
-<div class="row"><button id="ab_use" class="pri hide" data-act="abuse"></button><button id="ab_rm" class="danger hide" data-act="abrm">Remove link</button><button data-act="close">Cancel</button></div>
+<div class="row"><button id="ab_use" class="pri hide" data-act="abuse"></button><button id="ab_auto" class="pri hide" data-act="amscan">Match books in this folder</button><button id="ab_rm" class="danger hide" data-act="abrm">Remove link</button><button data-act="close">Cancel</button></div>
 </div></dialog>
 <div id="apb" class="hide" role="region" aria-label="Audiobook player"><i id="apb_bar"></i><button id="apb_open" data-act="apopen" aria-label="Open player"><span id="apb_cv" aria-hidden="true"></span><span class="apb-tx"><b id="apb_t"></b><small id="apb_s"></small></span></button><button id="apb_pp" class="pri" data-act="appp" aria-label="Play"></button><button data-act="apstop" aria-label="Stop and close player">✕</button></div>
+<dialog id="sbd" aria-labelledby="sb_t"><div class="fm"><h2 id="sb_t">Sync &amp; backup</h2><div class="sb-o"><button data-act="od"><b>OneDrive sync</b><small>Connect, sync now or sign out</small></button><button data-act="backup"><b>Backup</b><small>Copy your library as text, or restore from a copy</small></button></div><div class="row"><button data-act="close">Close</button></div></div></dialog>
+<dialog id="amd" aria-labelledby="am_t"><div class="fm"><h2 id="am_t">Matched audiobooks</h2><p id="am_note" class="note" style="margin:0"></p><ul id="am_list" class="ap-list am-list"></ul><div class="row"><button id="am_go" class="pri" data-act="amlink">Link selected</button><button data-act="close">Cancel</button></div></div></dialog>
 <dialog id="td"><div class="fm" style="text-align:center">
 <img id="t_img" alt="Trinket preview" style="max-height:120px;max-width:100%;margin:auto">
 <div class="row" style="justify-content:center"><button data-ta="up">Shelf above</button><button data-ta="down">Shelf below</button></div>
@@ -358,7 +375,7 @@ B({title:'The Hobbit',author:'J.R.R. Tolkien',genres:['Fantasy','Adventure'],for
 B({title:'Educated',author:'Tara Westover',genres:['Memoir'],formats:['paperback'],own:'borrowed',from:'Sam',pages:352,status:'read',year:2022,summary:'A memoir about growing up off the grid and finding her way into classrooms.'}),
 B({title:'Dune',author:'Frank Herbert',genres:['Science fiction','Classics'],formats:['hardcover'],pages:688,summary:'Politics, prophecy and spice collide on the desert planet Arrakis.'}),
 B({title:'Braiding Sweetgrass',author:'Robin Wall Kimmerer',genres:['Nature','Essays'],formats:['audiobook'],mins:1000,status:'read',year:2023,summary:'Essays that weave botany, Indigenous wisdom and care for the living world.'})]}
-let S=load(),view='today',mode='genre',filt={q:'',s:'all',f:'all'},editId=null,trId=null;
+let S=load(),view='shelf',mode='genre',filt={q:'',s:'all',f:'all'},editId=null,trId=null;
 function load(){try{const r=localStorage.getItem(K);if(r){const d=JSON.parse(r);d.log=d.log||[];d.trinkets=d.trinkets||[];d.review=d.review||[];return d}}catch(e){}return{books:samples(),trinkets:[],log:[],review:[]}}
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),Math.max(2600,t.length*55))}
 const lenTxt=b=>[b.pages?b.pages+' pages':'',b.mins?fmM(b.mins)+' audio':''].filter(Boolean).join(' · ');
@@ -367,8 +384,11 @@ function prog(b){const p=[];if(b.pages)p.push('page '+(b.page||0)+' of '+b.pages
 return `<div class="pb"><i style="width:${Math.round(frac(b)*100)}%"></i></div><div class="meta">${Math.round(frac(b)*100)}% · ${p.join(' · ')}</div>`}
 
 function render(){
+ const box=$('#ap_box'),home=$('#ap_home');if(box&&box.parentNode!==home)home.appendChild(box);
  document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===view));
- ({today:vToday,lib:vLib,shelf:vShelf})[view]();
+ document.querySelectorAll('[data-on]').forEach(b=>b.classList.toggle('hide',b.dataset.on!==view));
+ ({today:vToday,lib:vLib,shelf:vShelf,player:vPlayer})[view]();
+ if(typeof AP==='object')apUI()
 }
 /* ---------- Today ---------- */
 function streak(){const s=new Set(S.log.map(l=>l.date));const d=new Date();if(!s.has(ymd(d)))d.setDate(d.getDate()-1);let n=0;while(s.has(ymd(d))){n++;d.setDate(d.getDate()-1)}return n}
@@ -492,7 +512,7 @@ function why(e){const m=String((e&&e.errorCode)||'')+' '+String((e&&(e.errorMess
  return 'OneDrive sign-in problem: '+(m.trim()||'unknown error')+'. Tap Reset sign-in, then Save and connect.'}
 async function od(login){
  const id=localStorage.getItem('bs-cid');
- if(!id){cs('Not connected to OneDrive. Tap OneDrive to set up syncing.');return}
+ if(!id){cs('Not connected to OneDrive. On Stats, tap Sync & backup, then OneDrive sync, to set it up.');return}
  if(!window.msal){cs('Not connected. The Microsoft sign-in library didn’t load, so check your connection and reload.');return}
  try{
   cs(login?'Opening Microsoft sign-in…':'Checking OneDrive sign-in…');
@@ -500,7 +520,7 @@ async function od(login){
   if(M.initialize)await M.initialize();
   const r=await M.handleRedirectPromise();acct=(r&&r.account)||M.getAllAccounts()[0]||null;
   if(acct&&M.setActiveAccount)M.setActiveAccount(acct);
-  if(!acct){if(login){await M.loginRedirect({scopes:SC,prompt:'select_account'});return}cs('Not connected to OneDrive. Tap OneDrive, then Save and connect.');return}
+  if(!acct){if(login){await M.loginRedirect({scopes:SC,prompt:'select_account'});return}cs('Not connected to OneDrive. On Stats, tap Sync & backup, then OneDrive sync, then Save and connect.');return}
   cs('Connected as '+(acct.username||'your Microsoft account')+'.');
   await pull()
  }catch(e){acct=null;cs(why(e))}
@@ -992,22 +1012,50 @@ async function kids(id){let p=(id?'/me/drive/items/'+id+'/children':'/me/drive/r
 /* pick the file or folder for a book */
 let AB={id:null,stack:[],items:[]};
 function abOpen(bookId){if(!acct)return toast('Connect OneDrive first, then link the audio.');
- AB={id:bookId,stack:[],items:[]};try{const s=JSON.parse(localStorage.getItem('bs-afolder')||'[]');if(Array.isArray(s))AB.stack=s}catch(e){}
+ AB={id:bookId,mode:'',stack:[],items:[]};try{const s=JSON.parse(localStorage.getItem('bs-afolder')||'[]');if(Array.isArray(s))AB.stack=s}catch(e){}
  const b=S.books.find(x=>x.id===bookId);$('#ab_t').textContent='Audio for '+(b?b.title:'this book');$('#ab_rm').classList.toggle('hide',!(b&&b.audio));$('#abd').showModal();abLoad()}
 async function abLoad(retry){const cur=AB.stack[AB.stack.length-1],ul=$('#ab_list');
- $('#ab_path').textContent=['OneDrive',...AB.stack.map(x=>x.name)].join(' › ');ul.innerHTML='<li class="note">Loading…</li>';$('#ab_use').classList.add('hide');
+ $('#ab_path').textContent=['OneDrive',...AB.stack.map(x=>x.name)].join(' › ');ul.innerHTML='<li class="note">Loading…</li>';$('#ab_use').classList.add('hide');$('#ab_auto').classList.add('hide');
  try{const it=await kids(cur&&cur.id);if(!it){ul.innerHTML='<li class="note">Signing in to OneDrive…</li>';return}
   AB.items=it;const fo=it.filter(x=>x.folder),au=it.filter(isAud);
   ul.innerHTML=(AB.stack.length?'<li><button data-abup="1">‹ Back</button></li>':'')+fo.map(x=>`<li><button data-abf="${x.id}"><span class="ab-i" aria-hidden="true">▸</span><span>${esc(x.name)}</span><small>${x.folder.childCount||0} items</small></button></li>`).join('')
    +au.map(x=>`<li><button data-abfile="${x.id}"><span class="ab-i" aria-hidden="true">♪</span><span>${esc(x.name)}</span><small>${x.audio&&x.audio.duration?fmT(x.audio.duration/1000):Math.max(1,Math.round((x.size||0)/1048576))+' MB'}</small></button></li>`).join('')
    ||'<li class="note">No folders or audio files here.</li>';
-  if(au.length&&cur){const u=$('#ab_use');u.classList.remove('hide');u.textContent=`Use this folder (${au.length} audio ${au.length===1?'file':'files'})`}
+  if(AB.mode==='auto'){$('#ab_auto').classList.toggle('hide',!cur)}else if(au.length&&cur){const u=$('#ab_use');u.classList.remove('hide');u.textContent=`Use this folder (${au.length} audio ${au.length===1?'file':'files'})`}
  }catch(e){if(AB.stack.length&&!retry){AB.stack=[];return abLoad(true)}ul.innerHTML='<li class="note">Couldn’t read OneDrive. Check your connection and try again.</li>'}}
 function abKeep(){try{localStorage.setItem('bs-afolder',JSON.stringify(AB.stack))}catch(e){}}
 function abSet(audio){const b=S.books.find(x=>x.id===AB.id);if(!b)return;
  if(AP.id===b.id)apStop();
  if(audio){b.audio=audio;if(!b.formats.includes('audiobook'))b.formats.push('audiobook')}else delete b.audio;
- delete b.apos;save();$('#abd').close();render();toast(audio?'Audio linked. Tap Listen to play.':'Audio link removed.');openDet(b.id)}
+ delete b.apos;save();$('#abd').close();render();toast(audio?'Audio linked. Tap Listen to play.':'Audio link removed.');if(view!=='player')openDet(b.id)}
+/* auto-link: match unlinked audiobooks to folders and files by name */
+let AM=[];
+function amOpen(){if(!acct)return toast('Connect OneDrive first.');AB={id:null,mode:'auto',stack:[],items:[]};try{const s=JSON.parse(localStorage.getItem('bs-afolder')||'[]');if(Array.isArray(s))AB.stack=s}catch(e){}
+ $('#ab_t').textContent='Choose your audiobooks folder';$('#ab_rm').classList.add('hide');$('#abd').showModal();abLoad()}
+const amKey=t=>normT(String(t||'').replace(AEXT,'').replace(/[_.]+/g,' ').replace(/\[[^\]]*\]/g,' '));
+function amScore(b,c){const bt=normT(b.title),cn=c.key;if(!bt||!cn)return 0;let s=0;
+ if(cn===bt)s=1;else if(bt.length>=4&&(' '+cn+' ').includes(' '+bt+' '))s=.9;
+ else{const tw=bt.split(' ').filter(w=>w.length>1),cw=new Set(cn.split(' '));if(tw.length>=2){const o=tw.filter(w=>cw.has(w)).length/tw.length;if(o>=.75)s=.6*o}}
+ if(s&&b.author&&(' '+cn+' ').includes(' '+lastName(b.author)+' '))s+=.05;if(s&&c.kind==='folder')s+=.01;return s}
+async function amScan(){const cur=AB.stack[AB.stack.length-1];if(!cur)return;const ul=$('#ab_list');$('#ab_auto').classList.add('hide');
+ const todo=S.books.filter(b=>b.formats.includes('audiobook')&&!b.audio);if(!todo.length){toast('Every audiobook is already linked.');return}
+ try{const cands=[];let n=0,queue=[{id:cur.id,d:0}];
+  const add=(kind,x,count)=>cands.push({kind,id:x.id,name:x.name,key:amKey(x.name),count});
+  while(queue.length&&n<250){const batch=queue.splice(0,4);ul.innerHTML=`<li class="note">Looking through your folders… ${n} checked</li>`;
+   await Promise.all(batch.map(async q=>{const it=await kids(q.id);n++;if(!it)return;const au=it.filter(isAud);
+    if(q.d>0&&au.length)add('folder',q,au.length);
+    if(q.d===0||au.length<=40)au.forEach(x=>add('file',x,1));
+    if(q.d<2)it.filter(x=>x.folder).forEach(x=>queue.push({id:x.id,name:x.name,d:q.d+1}))}))}
+  const pairs=[];todo.forEach(b=>cands.forEach(c=>{const s=amScore(b,c);if(s>=.6)pairs.push({b,c,s})}));pairs.sort((x,y)=>y.s-x.s);
+  const ub=new Set(),uc=new Set();AM=[];pairs.forEach(p=>{if(ub.has(p.b.id)||uc.has(p.c.id))return;ub.add(p.b.id);uc.add(p.c.id);AM.push(p)});
+  AM.sort((x,y)=>ak(x.b).localeCompare(ak(y.b)));const miss=todo.filter(b=>!ub.has(b.id));
+  $('#abd').close();$('#am_note').textContent=AM.length?`Found ${AM.length} of ${todo.length} unlinked ${todo.length===1?'audiobook':'audiobooks'} in ${cur.name}. Untick any that look wrong.`:`Nothing in ${cur.name} matched your ${todo.length} unlinked ${todo.length===1?'audiobook':'audiobooks'} by name.`;
+  $('#am_list').innerHTML=AM.map((p,i)=>`<li><label><input type="checkbox" data-am="${i}" ${p.s>=.8?'checked':''}><span><b>${esc(p.b.title)}</b><small>${p.c.kind==='folder'?'Folder':'File'}: ${esc(p.c.name)}${p.c.kind==='folder'?' · '+p.c.count+' audio '+(p.c.count===1?'file':'files'):''}${p.s<.8?' · loose match, check it':''}</small></span></label></li>`).join('')
+   +miss.map(b=>`<li><label><span><b>${esc(b.title)}</b><small>No match found. Link it by hand from the Player list.</small></span></label></li>`).join('');
+  $('#am_go').classList.toggle('hide',!AM.length);$('#amd').showModal()
+ }catch(e){ul.innerHTML='<li class="note">Couldn’t read OneDrive. Check your connection and try again.</li>';$('#ab_auto').classList.remove('hide')}}
+function amLink(){let n=0;document.querySelectorAll('#am_list input:checked').forEach(i=>{const p=AM[+i.dataset.am],b=p&&S.books.find(x=>x.id===p.b.id);if(b&&!b.audio){b.audio={kind:p.c.kind,id:p.c.id,name:p.c.name};delete b.apos;n++}});
+ $('#amd').close();if(n){save();render()}toast(n?`Linked ${n} ${n===1?'audiobook':'audiobooks'}.`:'Nothing was linked.')}
 /* the player */
 const AP={id:null,tracks:[],i:0,el:null,acc:0,last:0,urls:{},rate:1,want:false,tick:0,saved:0,tries:0,sleepT:null,sleepEnd:false,drag:false,msg:''};
 try{AP.rate=+localStorage.getItem('bs-aspeed')||1}catch(e){}
@@ -1028,8 +1076,8 @@ const apBefore=i=>AP.tracks.slice(0,i).reduce((a,t)=>a+(t.dur||0),0);
 const apTotal=()=>apBefore(AP.tracks.length);
 const apPos=()=>apBefore(AP.i)+((AP.el&&AP.el.currentTime)||0);
 async function apOpen(id){const b=S.books.find(x=>x.id===id);if(!b||!b.audio)return;if(!acct)return toast('Connect OneDrive to listen.');
- $('#apd').showModal();if(AP.id===id&&AP.tracks.length){apUI();apList();return}
- apStop(true);AP.id=id;AP.msg='Finding the audio on OneDrive…';apUI();
+ if(AP.id===id&&AP.tracks.length){view='player';render();apList();return}
+ apStop(true);AP.id=id;AP.msg='Finding the audio on OneDrive…';view='player';render();
  try{let items;if(b.audio.kind==='folder')items=((await kids(b.audio.id))||[]).filter(isAud);
   else{const j=await gj('/me/drive/items/'+b.audio.id+'?$select=id,name,size,file,audio');items=j?[j]:[]}
   if(AP.id!==id)return;if(!items.length)throw new Error('none');
@@ -1068,7 +1116,7 @@ function apPrev(){const a=AP.el;if(a&&a.currentTime>5||AP.i===0){if(a&&a.src){a.
 function apStop(quiet){if(AP.id&&AP.el&&AP.tracks.length)apFlush();apSleep('0');if(AP.el){AP.swap=true;AP.el.pause();AP.el.removeAttribute('src');try{AP.el.load()}catch(e){}AP.swap=false}
  AP.id=null;AP.tracks=[];AP.i=0;AP.want=false;AP.acc=0;AP.msg='';
  if('mediaSession' in navigator){try{navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none'}catch(e){}}
- if(!quiet){const d=$('#apd');if(d.open)d.close();apUI();render()}}
+ if(!quiet)render()}
 function apSleep(v){clearTimeout(AP.sleepT);AP.sleepT=null;AP.sleepEnd=v==='end';const n=+v;
  if(n>0)AP.sleepT=setTimeout(()=>{AP.sleepT=null;if(AP.el&&!AP.el.paused){AP.want=false;AP.el.pause();AP.msg='Sleep timer: paused.'}const s=$('#ap_sleep');if(s)s.value='0';apUI()},n*6e4);
  const s=$('#ap_sleep');if(s&&s.value!==String(v))s.value=String(v)}
@@ -1081,14 +1129,14 @@ function apList(){const ul=$('#ap_list');if(!ul)return;ul.classList.toggle('hide
  const on=ul.querySelector('.on');if(on&&on.scrollIntoView)try{on.scrollIntoView({block:'nearest'})}catch(e){}}
 const AP_ICON={play:'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>',pause:'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 4.5h4.5v15H6zM13.5 4.5H18v15h-4.5z" fill="currentColor"/></svg>'};
 function apUI(){const b=apB(),a=AP.el,tr=AP.tracks[AP.i],bar=$('#apb'),playing=!!(a&&a.src&&!a.paused);
- document.body.classList.toggle('has-apb',!!b);bar.classList.toggle('hide',!b);if(!b)return;
+ const pv=view==='player',box=$('#ap_box'),pe=$('#pv_empty');document.body.classList.toggle('has-apb',!!b&&!pv);bar.classList.toggle('hide',!b||pv);if(box)box.classList.toggle('hide',!b);if(pe)pe.classList.toggle('hide',!!b);if(!b)return;
  const cv=RFS(b.cover),cvs=cv?`background:#2a2430 url('${cv}') center/cover`:`background:${col(b)}`,n=AP.tracks.length;
  const sub=tr?(n>1?`Part ${AP.i+1} of ${n} · ${tr.name}`:(b.author||'')):'';
  const cur=(a&&a.src&&a.currentTime)||AP.seekTo||0,dur=(a&&isFinite(a.duration)&&a.duration)||(tr&&tr.dur)||0;
  const ic=playing?AP_ICON.pause:AP_ICON.play,lab=playing?'Pause':'Play';
  $('#apb_cv').style.cssText=cvs;$('#apb_t').textContent=b.title;$('#apb_s').textContent=AP.msg||sub;
  $('#apb_pp').innerHTML=ic;$('#apb_pp').setAttribute('aria-label',lab);$('#apb_bar').style.width=(dur?Math.min(100,cur/dur*100):0)+'%';
- if($('#apd').open){$('#ap_cv').style.cssText=cvs;$('#ap_t').textContent=b.title;$('#ap_tr').textContent=sub;
+ if(pv){$('#ap_cv').style.cssText=cvs;$('#ap_t').textContent=b.title;$('#ap_tr').textContent=sub;
   $('#ap_pp').innerHTML=ic;$('#ap_pp').setAttribute('aria-label',lab);$('#ap_pp').disabled=!n;
   const sk=$('#ap_seek');sk.max=Math.max(1,Math.floor(dur));if(!AP.drag)sk.value=Math.floor(cur);sk.disabled=!n;
   $('#ap_cur').textContent=fmT(AP.drag?+sk.value:cur);$('#ap_dur').textContent=dur?fmT(dur):'--:--';
@@ -1100,8 +1148,12 @@ function apInit(){const sk=$('#ap_seek');
  sk.addEventListener('change',()=>{AP.drag=false;if(AP.el&&AP.el.src){AP.el.currentTime=+sk.value;AP.last=+sk.value}apUI()});
  $('#ap_speed').addEventListener('change',e=>{AP.rate=+e.target.value||1;try{localStorage.setItem('bs-aspeed',String(AP.rate))}catch(x){}if(AP.el)AP.el.defaultPlaybackRate=AP.el.playbackRate=AP.rate;apUI()});
  $('#ap_sleep').addEventListener('change',e=>apSleep(e.target.value));
- $('#apd').addEventListener('close',()=>{apUI();if(AP.id)render()});
  addEventListener('pagehide',()=>{if(AP.id)apKeep(true)});document.addEventListener('visibilitychange',()=>{if(document.hidden&&AP.id)apKeep(true)})}
+function vPlayer(){const bs=S.books.filter(b=>b.formats.includes('audiobook')).sort((a,b)=>ak(a).localeCompare(ak(b)));
+ const row=b=>{const cv=RFS(b.cover);return `<div class="pv-r${b.id===AP.id?' on':''}"><button class="pv-c" data-det="${b.id}" aria-label="Details for ${esc(b.title)}" style="${cv?`background:#2a2430 url('${cv}') center/cover`:`background:${col(b)}`}"></button><div class="pv-i"><b>${esc(b.title)}</b><small>${esc(b.author||'')}</small><small>${b.mins?fmM(b.min||0)+' of '+fmM(b.mins):b.min?fmM(b.min)+' listened':''}</small></div>${b.audio?`<button class="pri" data-pl="${b.id}">${b.id===AP.id?'Now playing':b.apos?'Continue':'Listen'}</button>`:`<button data-pll="${b.id}">Link audio</button>`}</div>`};
+ $('#app').innerHTML=`<div class="panel pv-now" id="pv_now"><p id="pv_empty" class="note" style="margin:0">Nothing is playing. Pick an audiobook below.</p></div>${acct?'':'<p class="note">Connect OneDrive to listen: go to Stats, tap Sync &amp; backup, then OneDrive sync.</p>'}
+ <div class="pv-top"><h2>Your audiobooks</h2>${acct&&bs.some(b=>!b.audio)?'<button data-act="amopen">Auto-link from a folder</button>':''}</div>${bs.length?`<div class="pv-list">${bs.map(row).join('')}</div>`:'<div class="empty">Books with the audiobook format show up here.</div>'}`;
+ $('#pv_now').appendChild($('#ap_box'))}
 function streams(){
  const big=[],sm=[],ord={tape:0,phone:1},gk=(a,b)=>mainG(a.b).localeCompare(mainG(b.b));
  const cm=[];S.books.forEach(b=>pieces(b).forEach(p=>(p.kind==='book'?big:p.kind==='comic'?cm:sm).push(p)));
@@ -1161,17 +1213,20 @@ document.addEventListener('click',e=>{
  if(x=g('[data-det]')){openDet(x.dataset.det);return}
  if(x=g('[data-abup]')){AB.stack.pop();abKeep();abLoad();return}
  if(x=g('[data-abf]')){const it=AB.items.find(y=>y.id===x.dataset.abf);if(it){AB.stack.push({id:it.id,name:it.name});abKeep();abLoad()}return}
- if(x=g('[data-abfile]')){const it=AB.items.find(y=>y.id===x.dataset.abfile);if(it)abSet({kind:'file',id:it.id,name:it.name});return}
+ if(x=g('[data-abfile]')){if(AB.mode==='auto')return;const it=AB.items.find(y=>y.id===x.dataset.abfile);if(it)abSet({kind:'file',id:it.id,name:it.name});return}
  if(x=g('[data-apt]')){apJump(+x.dataset.apt);return}
+ if(x=g('[data-pl]')){apOpen(x.dataset.pl);return}
+ if(x=g('[data-pll]')){abOpen(x.dataset.pll);return}
  if(x=g('[data-edit]')){openDet(x.dataset.edit);return}
  if(x=g('[data-act]')){const a=x.dataset.act;
+  if(a==='sb')$('#sbd').showModal();if((a==='od'||a==='backup')&&$('#sbd').open)$('#sbd').close();
   if(a==='add')openBook();if(a==='batch')bsOpen();if(a==='bsdone'){bsStop();$('#bsd').close();view='lib';render()}if(a==='bsadd'){bsSeen.delete($('#bs_isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase());bsAddIsbn($('#bs_isbn').value,'typed');$('#bs_isbn').value=''}if(a==='bsphoto')$('#bs_file').click();if(a==='revretry'){bsRetry();bsWork()}if(a==='revall')revAdd(S.review.filter(r=>r.status==='ready').map(r=>r.id));if(a==='ddedit'){$('#dd').close();openBook(detId)}if(a==='od'){$('#o_cid').value=localStorage.getItem('bs-cid')||'';$('#o_auth').value=localStorage.getItem('bs-auth')||'common';$('#o_st').textContent=$('#cs').textContent;$('#o_ru').textContent=RU();$('#odd').showModal()}if(a==='oconn')oConn();if(a==='osync')pull();if(a==='oout')oOut();if(a==='oreset')oReset();
   if(a==='save')saveBook();if(a==='scan')scan();if(a==='lookup')lookup();if(a==='scstop')scStop();if(a==='scphoto'){scStop();$('#sc_file').click()}if(a==='rmcov'){pend.cov='';imgNote()}if(a==='rmsp'){pend.sp='';F('usesp').checked=false;imgNote()}
   if(a==='close')x.closest('dialog').close();
   if(a==='aplisten'){$('#dd').close();apOpen(detId)}if(a==='aplink'){$('#dd').close();abOpen(detId)}
   if(a==='appp')apPP();if(a==='apback')apSeek(-30);if(a==='apfwd')apSeek(30);if(a==='apprev')apPrev();if(a==='apnext')apJump(AP.i+1);
-  if(a==='apstop')apStop();if(a==='apopen'){$('#apd').showModal();apUI();apList()}if(a==='apdet'){const i_=AP.id;$('#apd').close();openDet(i_)}
-  if(a==='abuse'){const c_=AB.stack[AB.stack.length-1];if(c_)abSet({kind:'folder',id:c_.id,name:c_.name})}if(a==='abrm')abSet(null);
+  if(a==='apstop')apStop();if(a==='apopen'){view='player';render();apList()}if(a==='apdet')openDet(AP.id);
+  if(a==='abuse'){const c_=AB.stack[AB.stack.length-1];if(c_)abSet({kind:'folder',id:c_.id,name:c_.name})}if(a==='abrm')abSet(null);if(a==='amopen')amOpen();if(a==='amscan')amScan();if(a==='amlink')amLink();
   if(a==='log')logIt();
   if(a==='del'){if(x.dataset.armed){S.books=S.books.filter(b=>b.id!==editId);S.log=S.log.filter(l=>l.bookId!==editId);save();$('#bd').close();render();toast('Deleted.')}else{x.dataset.armed=1;x.textContent='Tap again to delete'}}
   if(a==='clearsamples'){S.books=S.books.filter(b=>!b.sample);save();render()}
