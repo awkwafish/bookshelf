@@ -217,6 +217,26 @@ dialog{width:min(520px,94vw);border:0;border-radius:14px;background:var(--card);
 dialog::backdrop{background:rgba(0,0,0,.5)}
 .fm{display:grid;gap:10px}.chk{display:flex;gap:12px;flex-wrap:wrap}.chk label{display:flex;gap:5px;align-items:center;color:var(--ink);font-size:14px}.chk input{width:auto;margin:0}
 .hide{display:none!important}
+.ap-top{display:flex;gap:14px;align-items:center}.ap-cv{flex:none;width:84px;aspect-ratio:2/3;border-radius:6px;border:2px solid #1b1420;box-shadow:2px 3px 0 rgba(0,0,0,.25)}
+.ap-tt{min-width:0}.ap-tt h2{margin:0 0 4px;overflow-wrap:anywhere}
+.ap-seek{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-variant-numeric:tabular-nums;font-size:14px;color:var(--muted)}
+.ap-seek input{width:100%;margin:0;padding:0;accent-color:var(--accent);height:28px;border:0;background:none}
+.ap-ctl{display:flex;justify-content:center;align-items:center;gap:10px}.ap-ctl button{min-width:48px;min-height:48px;border-radius:999px;padding:0 10px;font-weight:600;font-variant-numeric:tabular-nums}
+.ap-ctl .ap-pp{width:64px;height:64px;display:grid;place-items:center}
+.ap-opt label{flex:1 1 140px}
+.ap-list{list-style:none;margin:0;padding:0;max-height:32vh;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.ap-list li+li{border-top:1px solid var(--line)}.ap-list li.note{padding:10px}
+.ap-list button{display:flex;gap:10px;align-items:center;width:100%;border:0;border-radius:0;background:none;text-align:left;padding:10px 12px;min-height:44px;color:var(--ink);font:inherit}
+.ap-list button span{flex:1;min-width:0;overflow-wrap:anywhere}.ap-list button small{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}
+.ap-list button.on{background:color-mix(in srgb,var(--accent) 16%,transparent);font-weight:600}
+.ap-list .ab-i{flex:none;width:1.2em;color:var(--muted)}
+#apb{position:fixed;left:0;right:0;bottom:0;z-index:8;display:flex;align-items:center;gap:8px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--line);box-shadow:0 -4px 14px rgba(0,0,0,.18)}
+#apb_bar{position:absolute;left:0;top:-1px;height:3px;background:var(--accent);pointer-events:none}
+#apb_open{flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:0;background:none;padding:0;text-align:left;color:var(--ink);font:inherit;min-height:48px}
+#apb_cv{flex:none;width:32px;height:48px;border-radius:4px;border:1.5px solid #1b1420}
+.apb-tx{min-width:0;display:grid}.apb-tx b,.apb-tx small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.apb-tx small{color:var(--muted)}
+#apb>button:not(#apb_open){flex:none;width:44px;height:44px;border-radius:999px;padding:0;display:grid;place-items:center}
+body.has-apb main{padding-bottom:110px}body.has-apb #toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
 #toast.show{opacity:1}
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
@@ -258,7 +278,25 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 <div class="row"><button class="pri" data-act="save">Save book</button><button data-act="close">Cancel</button><span class="sp"></span><button class="danger hide" id="f_del" data-act="del">Delete</button></div>
 </div></dialog>
 
-<dialog id="dd" aria-labelledby="dd_t"><div class="fm"><div id="dd_body"></div><div class="row"><button class="pri" data-act="ddedit">Edit book</button><button data-act="close">Close</button></div></div></dialog>
+<dialog id="dd" aria-labelledby="dd_t"><div class="fm"><div id="dd_body"></div><div class="row"><button id="dd_listen" class="pri hide" data-act="aplisten">Listen</button><button class="pri" data-act="ddedit">Edit book</button><button id="dd_alink" class="hide" data-act="aplink">Link audio</button><button data-act="close">Close</button></div></div></dialog>
+<dialog id="apd" aria-labelledby="ap_t"><div class="fm ap">
+<div class="ap-top"><span id="ap_cv" class="ap-cv" aria-hidden="true"></span><div class="ap-tt"><h2 id="ap_t"></h2><div id="ap_tr" class="meta"></div><div id="ap_all" class="meta"></div></div></div>
+<div class="ap-seek"><span id="ap_cur">0:00</span><input id="ap_seek" type="range" min="0" max="1" step="1" value="0" aria-label="Position in this part"><span id="ap_dur">--:--</span></div>
+<div class="ap-ctl"><button data-act="apprev" aria-label="Previous part" title="Previous part">⏮</button><button data-act="apback" aria-label="Back 30 seconds">−30</button><button id="ap_pp" class="pri ap-pp" data-act="appp" aria-label="Play"></button><button data-act="apfwd" aria-label="Forward 30 seconds">+30</button><button data-act="apnext" aria-label="Next part" title="Next part">⏭</button></div>
+<p id="ap_msg" class="note" role="status" style="margin:0;text-align:center;min-height:1.4em"></p>
+<div class="row ap-opt"><label>Speed<select id="ap_speed"><option value="0.75">0.75×</option><option value="1">1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="1.75">1.75×</option><option value="2">2×</option></select></label>
+<label>Sleep timer<select id="ap_sleep"><option value="0">Off</option><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">1 hour</option><option value="end">End of this part</option></select></label></div>
+<ul id="ap_list" class="ap-list hide" aria-label="Parts"></ul>
+<div class="row"><button data-act="apdet">Book details</button><button data-act="apstop">Stop</button><button data-act="close">Hide player</button></div>
+</div></dialog>
+<dialog id="abd" aria-labelledby="ab_t"><div class="fm">
+<h2 id="ab_t">Audio</h2>
+<p class="note" style="margin:0">Pick one audio file, or open the folder that holds the book’s parts and choose Use this folder.</p>
+<p id="ab_path" class="meta" style="margin:0;font-weight:600"></p>
+<ul id="ab_list" class="ap-list ab-list"></ul>
+<div class="row"><button id="ab_use" class="pri hide" data-act="abuse"></button><button id="ab_rm" class="danger hide" data-act="abrm">Remove link</button><button data-act="close">Cancel</button></div>
+</div></dialog>
+<div id="apb" class="hide" role="region" aria-label="Audiobook player"><i id="apb_bar"></i><button id="apb_open" data-act="apopen" aria-label="Open player"><span id="apb_cv" aria-hidden="true"></span><span class="apb-tx"><b id="apb_t"></b><small id="apb_s"></small></span></button><button id="apb_pp" class="pri" data-act="appp" aria-label="Play"></button><button data-act="apstop" aria-label="Stop and close player">✕</button></div>
 <dialog id="td"><div class="fm" style="text-align:center">
 <img id="t_img" alt="Trinket preview" style="max-height:120px;max-width:100%;margin:auto">
 <div class="row" style="justify-content:center"><button data-ta="up">Shelf above</button><button data-ta="down">Shelf below</button></div>
@@ -630,7 +668,8 @@ function openDet(id){
  <div class="tags">${b.genres.map(g=>`<span class="tag">${esc(g)}</span>`).join('')}<span class="tag st">${ST[b.status]}${b.status==='read'&&b.year?' '+b.year:''}</span></div>
  <div class="meta">${b.formats.join(', ')||'No format'} · ${b.own==='own'?'Owned':'Borrowed'+(b.from?' from '+esc(b.from):'')}${lenTxt(b)?'<br>'+lenTxt(b):''}${b.fin?'<br>Finished '+esc(b.fin):''}</div>
  ${b.series||sq?`<div class="meta">${b.series?'Set: '+esc(b.series)+(b.sno?', book '+b.sno:''):''}${b.series&&sq?' · ':''}${sq?'Sequel to '+esc(sq.title):''}</div>`:''}
- ${b.status==='reading'?prog(b):''}${b.summary?`<p class="sum" style="clear:both">${esc(b.summary)}</p>`:''}${grLink(b)}`;
+ ${b.audio?`<div class="meta">Audio on OneDrive: ${esc(b.audio.name)}${b.audio.kind==='folder'?' (folder)':''}</div>`:''}${b.status==='reading'?prog(b):''}${b.summary?`<p class="sum" style="clear:both">${esc(b.summary)}</p>`:''}${grLink(b)}`;
+ const au_=b.formats.includes('audiobook');$('#dd_listen').classList.toggle('hide',!(au_&&b.audio));$('#dd_alink').classList.toggle('hide',!au_);$('#dd_alink').textContent=b.audio?'Change audio':'Link audio';
  $('#dd').showModal()
 }
 let pend={cov:'',sp:''};
@@ -940,6 +979,129 @@ function reviewPanel(){if(!S.review||!S.review.length)return '';const ready=S.re
  <div class="rv-i"><b>${r.status==='looking'?(bsBusy?'Looking up…':'Waiting to look up'):r.status==='notfound'?(r.why==='busy'?'Lookup didn’t get through':'No match found'):esc(r.title)}</b><small>${r.author?esc(r.author):'ISBN '+esc(r.isbn)}</small>${r.genres&&r.genres.length?`<small>${esc(r.genres.join(', '))}${r.formats&&r.formats[0]?' · '+esc(r.formats[0]):''}</small>`:''}${r.dupOf?`<small class="rv-dup">You already have “${esc(r.dupOf)}”</small>`:''}
  <div class="rv-b">${r.status==='ready'?`<button class="pri" data-rv-add="${r.id}">Add</button>`:''}${r.status==='notfound'?`<button class="pri" data-rv-retry="${r.id}">Try again</button>`:''}<button data-rv-edit="${r.id}">${r.status==='ready'?'Edit first':'Fill in'}</button><button data-rv-del="${r.id}">Remove</button></div></div></div>`}).join('')}</div></div>`}
 $('#scd').addEventListener('close',scStop);$('#bsd').addEventListener('close',bsStop);$('#bs_file').onchange=bsPhotos;$('#bs_isbn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();bsSeen.delete(e.target.value.replace(/[^0-9Xx]/g,'').toUpperCase());bsAddIsbn(e.target.value,'typed');e.target.value=''}});if(S.review.some(r=>r.status==='looking'))setTimeout(bsWork,1500);$('#sc_file').onchange=scanPhoto;F('isbn').addEventListener('input',grSync);
+/* ---------- Audiobook player (streams from OneDrive) ---------- */
+const AEXT=/\.(mp3|m4a|m4b|aac|ogg|oga|opus|wav|flac|mp4)$/i;
+const isAud=it=>!!it.file&&(AEXT.test(it.name)||/^audio\//.test(it.file.mimeType||''));
+const natc=new Intl.Collator(undefined,{numeric:true,sensitivity:'base'});
+const GRAPH='https://graph.microsoft.com/v1.0';
+const fmT=s=>{s=Math.max(0,Math.floor(s||0));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
+async function gj(path){const r=await gr(path);if(!r)return null;if(!r.ok)throw new Error('graph '+r.status);return r.json()}
+async function kids(id){let p=(id?'/me/drive/items/'+id+'/children':'/me/drive/root/children')+'?$top=200&$select=id,name,size,folder,file,audio';const out=[];
+ while(p){const j=await gj(p);if(!j)return null;out.push(...(j.value||[]));const n=j['@odata.nextLink'];p=n?n.replace(GRAPH,''):''}
+ return out.sort((a,b)=>(!!b.folder-!!a.folder)||natc.compare(a.name,b.name))}
+/* pick the file or folder for a book */
+let AB={id:null,stack:[],items:[]};
+function abOpen(bookId){if(!acct)return toast('Connect OneDrive first, then link the audio.');
+ AB={id:bookId,stack:[],items:[]};try{const s=JSON.parse(localStorage.getItem('bs-afolder')||'[]');if(Array.isArray(s))AB.stack=s}catch(e){}
+ const b=S.books.find(x=>x.id===bookId);$('#ab_t').textContent='Audio for '+(b?b.title:'this book');$('#ab_rm').classList.toggle('hide',!(b&&b.audio));$('#abd').showModal();abLoad()}
+async function abLoad(retry){const cur=AB.stack[AB.stack.length-1],ul=$('#ab_list');
+ $('#ab_path').textContent=['OneDrive',...AB.stack.map(x=>x.name)].join(' › ');ul.innerHTML='<li class="note">Loading…</li>';$('#ab_use').classList.add('hide');
+ try{const it=await kids(cur&&cur.id);if(!it){ul.innerHTML='<li class="note">Signing in to OneDrive…</li>';return}
+  AB.items=it;const fo=it.filter(x=>x.folder),au=it.filter(isAud);
+  ul.innerHTML=(AB.stack.length?'<li><button data-abup="1">‹ Back</button></li>':'')+fo.map(x=>`<li><button data-abf="${x.id}"><span class="ab-i" aria-hidden="true">▸</span><span>${esc(x.name)}</span><small>${x.folder.childCount||0} items</small></button></li>`).join('')
+   +au.map(x=>`<li><button data-abfile="${x.id}"><span class="ab-i" aria-hidden="true">♪</span><span>${esc(x.name)}</span><small>${x.audio&&x.audio.duration?fmT(x.audio.duration/1000):Math.max(1,Math.round((x.size||0)/1048576))+' MB'}</small></button></li>`).join('')
+   ||'<li class="note">No folders or audio files here.</li>';
+  if(au.length&&cur){const u=$('#ab_use');u.classList.remove('hide');u.textContent=`Use this folder (${au.length} audio ${au.length===1?'file':'files'})`}
+ }catch(e){if(AB.stack.length&&!retry){AB.stack=[];return abLoad(true)}ul.innerHTML='<li class="note">Couldn’t read OneDrive. Check your connection and try again.</li>'}}
+function abKeep(){try{localStorage.setItem('bs-afolder',JSON.stringify(AB.stack))}catch(e){}}
+function abSet(audio){const b=S.books.find(x=>x.id===AB.id);if(!b)return;
+ if(AP.id===b.id)apStop();
+ if(audio){b.audio=audio;if(!b.formats.includes('audiobook'))b.formats.push('audiobook')}else delete b.audio;
+ delete b.apos;save();$('#abd').close();render();toast(audio?'Audio linked. Tap Listen to play.':'Audio link removed.');openDet(b.id)}
+/* the player */
+const AP={id:null,tracks:[],i:0,el:null,acc:0,last:0,urls:{},rate:1,want:false,tick:0,saved:0,tries:0,sleepT:null,sleepEnd:false,drag:false,msg:''};
+try{AP.rate=+localStorage.getItem('bs-aspeed')||1}catch(e){}
+const apB=()=>S.books.find(x=>x.id===AP.id);
+function apEl(){if(AP.el)return AP.el;const a=AP.el=new Audio();a.preload='auto';
+ a.addEventListener('timeupdate',apTime);a.addEventListener('play',()=>{AP.want=true;AP.msg='';apUI()});
+ a.addEventListener('pause',()=>{apFlush();apUI()});
+ a.addEventListener('ended',apEnded);a.addEventListener('error',apErr);a.addEventListener('playing',()=>{AP.tries=0});
+ a.addEventListener('loadedmetadata',()=>{const t=AP.tracks[AP.i];if(t&&isFinite(a.duration)&&a.duration>0){t.dur=a.duration;t.est=false}
+  if(AP.seekTo>0){try{a.currentTime=Math.min(AP.seekTo,Math.max(0,a.duration-1))}catch(e){}}AP.seekTo=0;apUI()});
+ return a}
+async function apUrl(t){const c=AP.urls[t.id];if(c&&Date.now()-c.at<45*6e4)return c.u;
+ const j=await gj('/me/drive/items/'+t.id);const u=j&&j['@microsoft.graph.downloadUrl'];if(!u)throw new Error('nourl');AP.urls[t.id]={u,at:Date.now()};return u}
+function apEst(){const b=apB(),kn=AP.tracks.filter(t=>t.dur>0),tot=AP.tracks.reduce((a,t)=>a+t.size,0);
+ const rate=kn.length?kn.reduce((a,t)=>a+t.size,0)/kn.reduce((a,t)=>a+t.dur,0):(b&&b.mins&&tot?tot/(b.mins*60):0);
+ AP.tracks.forEach(t=>{if(!t.dur&&rate&&t.size){t.dur=t.size/rate;t.est=true}})}
+const apBefore=i=>AP.tracks.slice(0,i).reduce((a,t)=>a+(t.dur||0),0);
+const apTotal=()=>apBefore(AP.tracks.length);
+const apPos=()=>apBefore(AP.i)+((AP.el&&AP.el.currentTime)||0);
+async function apOpen(id){const b=S.books.find(x=>x.id===id);if(!b||!b.audio)return;if(!acct)return toast('Connect OneDrive to listen.');
+ $('#apd').showModal();if(AP.id===id&&AP.tracks.length){apUI();apList();return}
+ apStop(true);AP.id=id;AP.msg='Finding the audio on OneDrive…';apUI();
+ try{let items;if(b.audio.kind==='folder')items=((await kids(b.audio.id))||[]).filter(isAud);
+  else{const j=await gj('/me/drive/items/'+b.audio.id+'?$select=id,name,size,file,audio');items=j?[j]:[]}
+  if(AP.id!==id)return;if(!items.length)throw new Error('none');
+  AP.tracks=items.map(it=>({id:it.id,name:it.name.replace(AEXT,''),size:it.size||0,dur:it.audio&&it.audio.duration?it.audio.duration/1000:0}));apEst();
+  const p=b.apos||{};let i=AP.tracks.findIndex(t=>t.id===p.id);AP.msg='';apLoad(i<0?0:i,i<0?0:(p.t||0),false);apList()
+ }catch(e){AP.msg=e.message==='none'?'No audio files were found there. Open the book’s details and choose Change audio.':'Couldn’t reach the audio on OneDrive. Check your connection and try again.';apUI()}}
+function apLoad(i,t,play){const a=apEl(),tr=AP.tracks[i];if(!tr)return;AP.i=i;AP.want=!!play;AP.msg='';
+ const go=u=>{if(AP.tracks[AP.i]!==tr)return;AP.swap=!!play;a.src=u;AP.swap=false;a.defaultPlaybackRate=a.playbackRate=AP.rate;AP.seekTo=t||0;AP.last=t||0;
+  if(play){const p=a.play();if(p&&p.catch)p.catch(()=>{AP.want=false;apUI()})}apMeta();apUI();apList();
+  const nx=AP.tracks[i+1];if(nx)apUrl(nx).catch(()=>{})};
+ const c=AP.urls[tr.id];if(c&&Date.now()-c.at<45*6e4)go(c.u);
+ else{apUI();apUrl(tr).then(go).catch(()=>{AP.want=false;AP.msg='Couldn’t load this part. Check your connection, then press play.';apUI()})}}
+function apTime(){const a=AP.el,t=a.currentTime,d=t-AP.last;if(!a.paused&&!a.seeking&&d>0&&d<3)AP.acc+=d;AP.last=t;
+ const now=Date.now();if(now-AP.tick>900){AP.tick=now;apUI()}if(now-AP.saved>15000){AP.saved=now;apKeep(true)}if(AP.acc>=300)apFlush()}
+function apKeep(local){const b=apB(),tr=AP.tracks[AP.i];if(!b||!tr||!AP.el)return null;
+ b.apos={id:tr.id,t:Math.floor(AP.el.currentTime||0)};const tot=apTotal();
+ if(!b.mins&&tot&&!AP.tracks.some(t=>t.est||!t.dur))b.mins=Math.round(tot/60);
+ const m=Math.round(apPos()/60);b.min=b.mins?Math.min(b.mins,m):m;if(local)persist();return b}
+function apFlush(){const b=apKeep();if(!b)return;const m=Math.floor(AP.acc/60);
+ if(m>=1){AP.acc-=m*60;const d=today(),l=S.log.find(x=>x.bookId===b.id&&x.date===d&&x.auto);
+  if(l)l.mins+=m;else S.log.push({id:uid(),bookId:b.id,date:d,pages:0,mins:m,auto:true});if(b.status==='backlog')b.status='reading'}
+ AP.saved=Date.now();save()}
+function apEnded(){AP.acc+=0;apFlush();const b=apB();
+ if(AP.i+1<AP.tracks.length){const stop=AP.sleepEnd;if(stop)apSleep('0');apLoad(AP.i+1,0,!stop);if(stop){AP.msg='Sleep timer: stopped at the end of the chapter.';apUI()}}
+ else{AP.want=false;if(b){if(b.mins)b.min=b.mins;b.apos={id:AP.tracks[0].id,t:0};save()}AP.i=0;AP.seekTo=0;if(AP.el){AP.el.removeAttribute('src');try{AP.el.load()}catch(e){}}apList();AP.msg='That’s the end of the book. Open its details to mark it as read.';apUI()}}
+function apErr(){const a=AP.el,tr=AP.tracks[AP.i];if(!tr||!a.src||AP.swap)return;
+ if(AP.tries++<2){const t=a.currentTime||AP.last||0,w=AP.want;delete AP.urls[tr.id];AP.msg='Reconnecting…';apUI();setTimeout(()=>{if(AP.tracks[AP.i]===tr)apLoad(AP.i,t,w)},800)}
+ else{AP.want=false;AP.msg=navigator.onLine?'This file wouldn’t play. It may be a protected or unsupported format.':'You’re offline. The player needs a connection to stream.';apUI()}}
+function apPP(){const a=apEl();if(!AP.tracks.length)return;if(a.paused){AP.tries=0;AP.want=true;if(!a.src)return apLoad(AP.i,0,true);const p=a.play();if(p&&p.catch)p.catch(()=>{AP.want=false})}else{AP.want=false;a.pause()}}
+function apSeek(d){const a=AP.el;if(!a||!a.src)return;let t=(a.currentTime||0)+d;const dur=isFinite(a.duration)?a.duration:(AP.tracks[AP.i].dur||0);
+ if(t<0&&AP.i>0&&d<0){const pv=AP.tracks[AP.i-1];return apLoad(AP.i-1,Math.max(0,(pv.dur||0)+t),AP.want)}
+ if(dur&&t>=dur&&AP.i+1<AP.tracks.length)return apLoad(AP.i+1,0,AP.want);
+ a.currentTime=Math.max(0,dur?Math.min(dur-1,t):t);apUI()}
+function apJump(i){if(i<0||i>=AP.tracks.length)return;apFlush();apLoad(i,0,AP.want||true)}
+function apPrev(){const a=AP.el;if(a&&a.currentTime>5||AP.i===0){if(a&&a.src){a.currentTime=0;apUI()}}else apJump(AP.i-1)}
+function apStop(quiet){if(AP.id&&AP.el&&AP.tracks.length)apFlush();apSleep('0');if(AP.el){AP.swap=true;AP.el.pause();AP.el.removeAttribute('src');try{AP.el.load()}catch(e){}AP.swap=false}
+ AP.id=null;AP.tracks=[];AP.i=0;AP.want=false;AP.acc=0;AP.msg='';
+ if('mediaSession' in navigator){try{navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none'}catch(e){}}
+ if(!quiet){const d=$('#apd');if(d.open)d.close();apUI();render()}}
+function apSleep(v){clearTimeout(AP.sleepT);AP.sleepT=null;AP.sleepEnd=v==='end';const n=+v;
+ if(n>0)AP.sleepT=setTimeout(()=>{AP.sleepT=null;if(AP.el&&!AP.el.paused){AP.want=false;AP.el.pause();AP.msg='Sleep timer: paused.'}const s=$('#ap_sleep');if(s)s.value='0';apUI()},n*6e4);
+ const s=$('#ap_sleep');if(s&&s.value!==String(v))s.value=String(v)}
+function apMeta(){if(!('mediaSession' in navigator))return;const b=apB(),tr=AP.tracks[AP.i];if(!b||!tr)return;const ms=navigator.mediaSession,cv=RFS(b.cover);
+ try{ms.metadata=new MediaMetadata({title:AP.tracks.length>1?tr.name:b.title,artist:b.author||'',album:b.title,artwork:cv?[{src:cv,sizes:'512x512'}]:[]});
+  const H={play:()=>apPP(),pause:()=>apPP(),seekbackward:()=>apSeek(-30),seekforward:()=>apSeek(30),previoustrack:()=>apPrev(),nexttrack:()=>apJump(AP.i+1),seekto:e=>{if(AP.el&&e.seekTime!=null){AP.el.currentTime=e.seekTime;apUI()}}};
+  for(const k in H){try{ms.setActionHandler(k,H[k])}catch(e){}}}catch(e){}}
+function apList(){const ul=$('#ap_list');if(!ul)return;ul.classList.toggle('hide',AP.tracks.length<2);
+ ul.innerHTML=AP.tracks.map((t,i)=>`<li><button data-apt="${i}" class="${i===AP.i?'on':''}" ${i===AP.i?'aria-current="true"':''}><span>${esc(t.name)}</span><small>${t.dur?(t.est?'about ':'')+fmT(t.dur):''}</small></button></li>`).join('');
+ const on=ul.querySelector('.on');if(on&&on.scrollIntoView)try{on.scrollIntoView({block:'nearest'})}catch(e){}}
+const AP_ICON={play:'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>',pause:'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 4.5h4.5v15H6zM13.5 4.5H18v15h-4.5z" fill="currentColor"/></svg>'};
+function apUI(){const b=apB(),a=AP.el,tr=AP.tracks[AP.i],bar=$('#apb'),playing=!!(a&&a.src&&!a.paused);
+ document.body.classList.toggle('has-apb',!!b);bar.classList.toggle('hide',!b);if(!b)return;
+ const cv=RFS(b.cover),cvs=cv?`background:#2a2430 url('${cv}') center/cover`:`background:${col(b)}`,n=AP.tracks.length;
+ const sub=tr?(n>1?`Part ${AP.i+1} of ${n} · ${tr.name}`:(b.author||'')):'';
+ const cur=(a&&a.src&&a.currentTime)||AP.seekTo||0,dur=(a&&isFinite(a.duration)&&a.duration)||(tr&&tr.dur)||0;
+ const ic=playing?AP_ICON.pause:AP_ICON.play,lab=playing?'Pause':'Play';
+ $('#apb_cv').style.cssText=cvs;$('#apb_t').textContent=b.title;$('#apb_s').textContent=AP.msg||sub;
+ $('#apb_pp').innerHTML=ic;$('#apb_pp').setAttribute('aria-label',lab);$('#apb_bar').style.width=(dur?Math.min(100,cur/dur*100):0)+'%';
+ if($('#apd').open){$('#ap_cv').style.cssText=cvs;$('#ap_t').textContent=b.title;$('#ap_tr').textContent=sub;
+  $('#ap_pp').innerHTML=ic;$('#ap_pp').setAttribute('aria-label',lab);$('#ap_pp').disabled=!n;
+  const sk=$('#ap_seek');sk.max=Math.max(1,Math.floor(dur));if(!AP.drag)sk.value=Math.floor(cur);sk.disabled=!n;
+  $('#ap_cur').textContent=fmT(AP.drag?+sk.value:cur);$('#ap_dur').textContent=dur?fmT(dur):'--:--';
+  const tot=apTotal(),est=AP.tracks.some(t=>t.est);$('#ap_all').textContent=n&&tot?`${fmM(Math.round(apPos()/60))} of ${est?'about ':''}${fmM(Math.round(tot/60))} · ${Math.min(100,Math.round(apPos()/tot*100))}%`:'';
+  $('#ap_msg').textContent=AP.msg;$('#ap_speed').value=String(AP.rate)}
+ if('mediaSession' in navigator){try{navigator.mediaSession.playbackState=playing?'playing':'paused';if(dur&&navigator.mediaSession.setPositionState)navigator.mediaSession.setPositionState({duration:dur,playbackRate:AP.rate,position:Math.min(cur,dur)})}catch(e){}}}
+function apInit(){const sk=$('#ap_seek');
+ sk.addEventListener('pointerdown',()=>{AP.drag=true});sk.addEventListener('input',()=>{AP.drag=true;$('#ap_cur').textContent=fmT(+sk.value)});
+ sk.addEventListener('change',()=>{AP.drag=false;if(AP.el&&AP.el.src){AP.el.currentTime=+sk.value;AP.last=+sk.value}apUI()});
+ $('#ap_speed').addEventListener('change',e=>{AP.rate=+e.target.value||1;try{localStorage.setItem('bs-aspeed',String(AP.rate))}catch(x){}if(AP.el)AP.el.defaultPlaybackRate=AP.el.playbackRate=AP.rate;apUI()});
+ $('#ap_sleep').addEventListener('change',e=>apSleep(e.target.value));
+ $('#apd').addEventListener('close',()=>{apUI();if(AP.id)render()});
+ addEventListener('pagehide',()=>{if(AP.id)apKeep(true)});document.addEventListener('visibilitychange',()=>{if(document.hidden&&AP.id)apKeep(true)})}
 function streams(){
  const big=[],sm=[],ord={tape:0,phone:1},gk=(a,b)=>mainG(a.b).localeCompare(mainG(b.b));
  const cm=[];S.books.forEach(b=>pieces(b).forEach(p=>(p.kind==='book'?big:p.kind==='comic'?cm:sm).push(p)));
@@ -997,11 +1159,19 @@ document.addEventListener('click',e=>{
  if(x=g('[data-rv-edit]')){const r=S.review.find(y=>y.id===x.dataset.rvEdit);if(r)openBook(null,r);return}
  if(x=g('[data-rv-del]')){S.review=S.review.filter(y=>y.id!==x.dataset.rvDel);save();vLib();return}
  if(x=g('[data-det]')){openDet(x.dataset.det);return}
- if(x=g('[data-edit]')){openBook(x.dataset.edit);return}
+ if(x=g('[data-abup]')){AB.stack.pop();abKeep();abLoad();return}
+ if(x=g('[data-abf]')){const it=AB.items.find(y=>y.id===x.dataset.abf);if(it){AB.stack.push({id:it.id,name:it.name});abKeep();abLoad()}return}
+ if(x=g('[data-abfile]')){const it=AB.items.find(y=>y.id===x.dataset.abfile);if(it)abSet({kind:'file',id:it.id,name:it.name});return}
+ if(x=g('[data-apt]')){apJump(+x.dataset.apt);return}
+ if(x=g('[data-edit]')){openDet(x.dataset.edit);return}
  if(x=g('[data-act]')){const a=x.dataset.act;
   if(a==='add')openBook();if(a==='batch')bsOpen();if(a==='bsdone'){bsStop();$('#bsd').close();view='lib';render()}if(a==='bsadd'){bsSeen.delete($('#bs_isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase());bsAddIsbn($('#bs_isbn').value,'typed');$('#bs_isbn').value=''}if(a==='bsphoto')$('#bs_file').click();if(a==='revretry'){bsRetry();bsWork()}if(a==='revall')revAdd(S.review.filter(r=>r.status==='ready').map(r=>r.id));if(a==='ddedit'){$('#dd').close();openBook(detId)}if(a==='od'){$('#o_cid').value=localStorage.getItem('bs-cid')||'';$('#o_auth').value=localStorage.getItem('bs-auth')||'common';$('#o_st').textContent=$('#cs').textContent;$('#o_ru').textContent=RU();$('#odd').showModal()}if(a==='oconn')oConn();if(a==='osync')pull();if(a==='oout')oOut();if(a==='oreset')oReset();
   if(a==='save')saveBook();if(a==='scan')scan();if(a==='lookup')lookup();if(a==='scstop')scStop();if(a==='scphoto'){scStop();$('#sc_file').click()}if(a==='rmcov'){pend.cov='';imgNote()}if(a==='rmsp'){pend.sp='';F('usesp').checked=false;imgNote()}
   if(a==='close')x.closest('dialog').close();
+  if(a==='aplisten'){$('#dd').close();apOpen(detId)}if(a==='aplink'){$('#dd').close();abOpen(detId)}
+  if(a==='appp')apPP();if(a==='apback')apSeek(-30);if(a==='apfwd')apSeek(30);if(a==='apprev')apPrev();if(a==='apnext')apJump(AP.i+1);
+  if(a==='apstop')apStop();if(a==='apopen'){$('#apd').showModal();apUI();apList()}if(a==='apdet'){const i_=AP.id;$('#apd').close();openDet(i_)}
+  if(a==='abuse'){const c_=AB.stack[AB.stack.length-1];if(c_)abSet({kind:'folder',id:c_.id,name:c_.name})}if(a==='abrm')abSet(null);
   if(a==='log')logIt();
   if(a==='del'){if(x.dataset.armed){S.books=S.books.filter(b=>b.id!==editId);S.log=S.log.filter(l=>l.bookId!==editId);save();$('#bd').close();render();toast('Deleted.')}else{x.dataset.armed=1;x.textContent='Tap again to delete'}}
   if(a==='clearsamples'){S.books=S.books.filter(b=>!b.sample);save();render()}
@@ -1014,7 +1184,7 @@ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.tar
 ['f_own','f_status'].forEach(i=>$('#'+i).onchange=syncForm);$('#f_fin').onchange=e=>{if(e.target.value)F('year').value=e.target.value.slice(0,4)};$('#f_fmts').onchange=syncForm;
 F('cov').onchange=async e=>{const f=e.target.files[0];if(!f)return;toast('Adding photo…');try{pend.cov=await up(f,500);imgNote()}catch(x){toast('That image could not be read.')}};
 F('spn').onchange=async e=>{const f=e.target.files[0];if(!f)return;toast('Adding photo…');try{pend.sp=await up(f,420);F('usesp').checked=true;imgNote()}catch(x){toast('That image could not be read.')}};
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&acct)pull()});addEventListener('online',()=>{if(acct)pull()});if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});norm();loadImgs().then(render);od();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&acct)pull()});addEventListener('online',()=>{if(acct)pull()});if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});norm();apInit();loadImgs().then(render);od();
 render();
 </script>
 </body>
