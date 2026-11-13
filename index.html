@@ -626,7 +626,7 @@ function ctHtml(list,CW){
  return out.join('')}
 function cxFront(b,W,H){const cv=RFS(b.cover),rib=b.status==='reading'?'<i class="cx-r"></i>':'';
  return `<button class="cxf" data-edit="${b.id}" title="${esc(b.title)} by ${esc(b.author)} (audiobook)" style="width:${W}px;height:${H}px"><i class="cxf-h"></i><span class="cxf-c" style="width:${H-10}px;height:${W-18}px;${cv?`background:#2a2430 url('${cv}') center/cover`:`background-color:${col(b)}`}">${cv?'':`<b>${esc(b.title)}</b><small>${esc(b.author||'')}</small>`}</span>${rib}</button>`}
-function ctPromote(){document.querySelectorAll('.ct').forEach(ct=>{const over=[...ct.querySelectorAll('.cx')].filter(x=>{const s=x.querySelector('span');return s&&s.scrollWidth>s.clientWidth});if(!over.length)return;
+function ctPromote(){document.querySelectorAll('.ct').forEach(ct=>{const over=[...ct.querySelectorAll('.cx')].filter(x=>{const s=x.querySelector('span');return s&&txOver(s)});if(!over.length)return;
  const cw=+ct.dataset.cw||100,W=Math.round(Math.max(92,Math.min(cw*1.05,160))),H=Math.round(W*.64);
  let top=ct.querySelector('.ct-top');if(!top){top=document.createElement('div');top.className='ct-top';ct.appendChild(top)}
  over.forEach(x=>{const b=S.books.find(y=>y.id===x.dataset.edit);if(!b)return;const c=x.parentElement;x.remove();c.insertAdjacentHTML('beforeend','<i class="cx-e"></i>');top.insertAdjacentHTML('beforeend',cxFront(b,W,H))});
@@ -1202,7 +1202,8 @@ function vShelf(){
  <p class="note">Comics and graphic novels go on the wire rack. Other print books fill the bookcase, sorted by main genre with a little sign hanging over each genre. Sets stay together with their number on the spine. Audiobooks fill the cassette rack, column by column, sorted by genre. Ebooks play on the TV as a channel guide, with what you are reading now at the top. Hover or tap the screen to pause the listings. A yellow ribbon or tab marks a book you are reading now. Tap a picture frame to choose its shelf and where it hangs.</p>`;
  $('#tfile').onchange=addTrinket;fitTitles();ctPromote()
 }
-function fitTitles(){document.querySelectorAll('.ct .cx span').forEach(s=>{let fs=parseFloat(getComputedStyle(s).fontSize);const min=Math.max(8,fs*.68);while(s.scrollWidth>s.clientWidth+1&&fs>min){fs-=.5;s.style.fontSize=fs+'px'}});document.querySelectorAll('.vs .p2 span, .vs .cs .lb2 span, .rk .ck-t').forEach(s=>{let fs=parseFloat(getComputedStyle(s).fontSize),n=0;while((s.scrollHeight>s.clientHeight+1||s.scrollWidth>s.clientWidth+1)&&fs>4.5&&n<30){fs-=.5;s.style.fontSize=fs+'px';n++}})}
+function txOver(s){try{const r=document.createRange();r.selectNodeContents(s);return r.getBoundingClientRect().width>s.getBoundingClientRect().width+.3}catch(e){return s.scrollWidth>s.clientWidth}}
+function fitTitles(){document.querySelectorAll('.ct .cx span').forEach(s=>{let fs=parseFloat(getComputedStyle(s).fontSize);const min=Math.max(8,fs*.68);while(txOver(s)&&fs>min){fs-=.5;s.style.fontSize=fs+'px'}});document.querySelectorAll('.vs .p2 span, .vs .cs .lb2 span, .rk .ck-t').forEach(s=>{let fs=parseFloat(getComputedStyle(s).fontSize),n=0;while((s.scrollHeight>s.clientHeight+1||s.scrollWidth>s.clientWidth+1)&&fs>4.5&&n<30){fs-=.5;s.style.fontSize=fs+'px';n++}})}
 function trAct(a){
  const t=S.trinkets.find(x=>x.id===trId);if(!t)return;
  const [bg]=streams(),fb=flow(bg,BIG),top=Math.max(1,Math.ceil((fb.last+1)/BIG.length))*NC-1;
@@ -1213,6 +1214,7 @@ function trAct(a){
  save();vShelf()
 }
 /* ---------- Events ---------- */
+if(document.fonts){const reShelf=()=>{if(view==='shelf'&&!document.querySelector('dialog[open]'))vShelf()};if(document.fonts.ready)document.fonts.ready.then(reShelf);if(document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',reShelf)}
 let rzT;addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(()=>{if(view==='shelf')vShelf()},150)});
 document.addEventListener('click',e=>{
  const g=s=>e.target.closest(s);let x;
