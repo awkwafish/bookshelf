@@ -27,6 +27,10 @@ nav{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:flex-start}
 .sb-o{display:grid;gap:10px}.sb-o button{display:grid;gap:2px;text-align:left;padding:12px 14px;border-radius:12px}.sb-o button small{color:var(--muted);font-weight:400}
 .am-list label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;min-height:44px;color:var(--ink);font-size:15px}.am-list input{width:auto;margin:3px 0 0;flex:none}.am-list span{min-width:0;overflow-wrap:anywhere}.am-list small{display:block;color:var(--muted)}
 .pv-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 10px}.pv-top h2{margin:0}
+.pv-b{flex:none;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.pv-b button{font-size:14px;padding:6px 12px}
+@media (max-width:520px){.pv-r{flex-wrap:wrap}.pv-b{flex:1 1 100%;justify-content:flex-start;padding-left:52px}}
+.pv-hb{margin:16px 0 8px;border:0;background:none;padding:6px 0;color:var(--muted);font:inherit;font-weight:600}
+.bl-t{min-height:150px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px}
 .pv-now{margin-bottom:14px}.pv-h{margin:4px 0 10px}
 .pv-list{display:grid;gap:8px}
 .pv-r{display:flex;gap:12px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
@@ -314,6 +318,7 @@ body.has-apb main{padding-bottom:110px}body.has-apb #toast{bottom:calc(84px + en
 <div id="apb" class="hide" role="region" aria-label="Audiobook player"><i id="apb_bar"></i><button id="apb_open" data-act="apopen" aria-label="Open player"><span id="apb_cv" aria-hidden="true"></span><span class="apb-tx"><b id="apb_t"></b><small id="apb_s"></small></span></button><button id="apb_pp" class="pri" data-act="appp" aria-label="Play"></button><button data-act="apstop" aria-label="Stop and close player">✕</button></div>
 <dialog id="sbd" aria-labelledby="sb_t"><div class="fm"><h2 id="sb_t">Sync &amp; backup</h2><div class="sb-o"><button data-act="od"><b>OneDrive sync</b><small>Connect, sync now or sign out</small></button><button data-act="backup"><b>Backup</b><small>Copy your library as text, or restore from a copy</small></button></div><div class="row"><button data-act="close">Close</button></div></div></dialog>
 <dialog id="amd" aria-labelledby="am_t"><div class="fm"><h2 id="am_t">Matched audiobooks</h2><p id="am_note" class="note" style="margin:0"></p><ul id="am_list" class="ap-list am-list"></ul><div class="row"><button id="am_go" class="pri" data-act="amlink">Link selected</button><button data-act="close">Cancel</button></div></div></dialog>
+<dialog id="bld" aria-labelledby="bl_t"><div class="fm"><h2 id="bl_t">Import a list of ISBNs</h2><p class="note" style="margin:0">Paste your list, or choose a text or CSV file. Anything that isn’t an ISBN is ignored, so extra columns, titles and dashes are fine.</p><textarea id="bl_txt" class="bl-t" placeholder="9780593440940&#10;978-1-250-84736-2&#10;…" aria-label="ISBN list"></textarea><p id="bl_n" class="note" role="status" style="margin:0;font-weight:600"></p><input id="bl_file" type="file" accept=".txt,.csv,.tsv,text/plain,text/csv" class="hide"><div class="row"><button class="pri" data-act="blgo">Add to review pile</button><button data-act="blfile">Choose a file</button><button data-act="close">Cancel</button></div></div></dialog>
 <dialog id="td"><div class="fm" style="text-align:center">
 <img id="t_img" alt="Trinket preview" style="max-height:120px;max-width:100%;margin:auto">
 <div class="row" style="justify-content:center"><button data-ta="up">Shelf above</button><button data-ta="down">Shelf below</button></div>
@@ -333,7 +338,7 @@ body.has-apb main{padding-bottom:110px}body.has-apb #toast{bottom:calc(84px + en
 <dialog id="bsd"><div class="fm"><h2>Scan several books</h2>
 <video id="bsv" playsinline muted style="width:100%;max-height:42vh;object-fit:cover;border-radius:10px;background:#000"></video>
 <p id="bs_msg" role="status" class="note" style="margin:0"></p>
-<div class="row"><label>Or type an ISBN<input id="bs_isbn" inputmode="numeric" placeholder="978…"></label><button data-act="bsadd">Add</button><button data-act="bsphoto">Add photos</button><input id="bs_file" type="file" accept="image/*" multiple class="hide"></div>
+<div class="row"><label>Or type an ISBN<input id="bs_isbn" inputmode="numeric" placeholder="978…"></label><button data-act="bsadd">Add</button><button data-act="bsphoto">Add photos</button><button data-act="blopen">Import a list</button><input id="bs_file" type="file" accept="image/*" multiple class="hide"></div>
 <p id="bs_count" class="note" style="margin:0;font-weight:600"></p><ul id="bs_list" class="bs-list"></ul>
 <div class="row"><button class="pri" data-act="bsdone">Done, go to review</button></div>
 </div></dialog>
@@ -949,6 +954,17 @@ function bsAddIsbn(raw,src){
  S.review.push({id:uid(),isbn:v,status:'looking',title:'',author:'',genres:[],formats:[],pages:0,summary:'',series:'',sno:0,cover:'',dupOf:own?own.title:''});
  save();bsList();try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}
  bsMsg('Added '+v+(own?'. You already have “'+own.title+'”':'')+'. Scan the next one.');bsWork()}
+function isbnOK(v){if(v.length===13){if(!/^97[89]\d{10}$/.test(v))return false;let t=0;for(let i=0;i<13;i++)t+=(+v[i])*(i%2?3:1);return t%10===0}
+ if(!/^\d{9}[\dX]$/.test(v))return false;let t=0;for(let i=0;i<10;i++)t+=(v[i]==='X'?10:+v[i])*(10-i);return t%11===0}
+function isbnsIn(text){const out=[],seen=new Set(),t=String(text||'').replace(/(\d)[-‐–  ](?=[\dXx])/g,'$1');
+ const re=/(^|[^\dXx])(97[89]\d{10}|\d{9}[\dXx])(?![\dXx])/g;let mm;const found=[];while(mm=re.exec(t))found.push(mm[2]);
+ found.forEach(m=>{const v=m.toUpperCase();if(isbnOK(v)&&!seen.has(v)){seen.add(v);out.push(v)}});return out}
+function blCount(){const n=isbnsIn($('#bl_txt').value).length;$('#bl_n').textContent=$('#bl_txt').value.trim()?(n?`${n} ${n===1?'ISBN':'ISBNs'} found.`:'No ISBNs found in that text yet.'):''}
+function blGo(){const list=isbnsIn($('#bl_txt').value);if(!list.length)return toast('No ISBNs found. Check the list and try again.');let add=0,inPile=0,own=0;
+ list.forEach(v=>{if(S.review.some(r=>r.isbn===v)){inPile++;return}const o=S.books.find(b=>b.isbn===v);if(o)own++;
+  S.review.push({id:uid(),isbn:v,status:'looking',title:'',author:'',genres:[],formats:[],pages:0,summary:'',series:'',sno:0,cover:'',dupOf:o?o.title:''});add++});
+ save();$('#bl_txt').value='';blCount();$('#bld').close();bsList();if($('#bsd').open){bsStop();$('#bsd').close()}view='lib';render();bsWork();
+ toast(`Added ${add} to your review pile.`+(inPile?` ${inPile} already there.`:'')+(own?` ${own} you already have (marked).`:'')+(add>25?' Looking them up will take a few minutes.':''))}
 async function bsWork(){if(bsBusy)return;bsBusy=true;const tries={};let wait=0;
  const nextUp=()=>S.review.filter(r=>r.status==='looking').sort((a,b)=>(tries[a.id]||0)-(tries[b.id]||0))[0];
  try{let d;while(d=nextUp()){
@@ -998,7 +1014,7 @@ function reviewPanel(){if(!S.review||!S.review.length)return '';const ready=S.re
  <div class="rv-grid">${S.review.map(r=>{const cv=RFS(r.cover);return `<div class="rv-c">${cv?`<img src="${esc(cv)}" alt="">`:`<span class="rv-ph" style="background:${r.title?col(r):'#9A7A62'}">${r.status==='looking'?'…':''}</span>`}
  <div class="rv-i"><b>${r.status==='looking'?(bsBusy?'Looking up…':'Waiting to look up'):r.status==='notfound'?(r.why==='busy'?'Lookup didn’t get through':'No match found'):esc(r.title)}</b><small>${r.author?esc(r.author):'ISBN '+esc(r.isbn)}</small>${r.genres&&r.genres.length?`<small>${esc(r.genres.join(', '))}${r.formats&&r.formats[0]?' · '+esc(r.formats[0]):''}</small>`:''}${r.dupOf?`<small class="rv-dup">You already have “${esc(r.dupOf)}”</small>`:''}
  <div class="rv-b">${r.status==='ready'?`<button class="pri" data-rv-add="${r.id}">Add</button>`:''}${r.status==='notfound'?`<button class="pri" data-rv-retry="${r.id}">Try again</button>`:''}<button data-rv-edit="${r.id}">${r.status==='ready'?'Edit first':'Fill in'}</button><button data-rv-del="${r.id}">Remove</button></div></div></div>`}).join('')}</div></div>`}
-$('#scd').addEventListener('close',scStop);$('#bsd').addEventListener('close',bsStop);$('#bs_file').onchange=bsPhotos;$('#bs_isbn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();bsSeen.delete(e.target.value.replace(/[^0-9Xx]/g,'').toUpperCase());bsAddIsbn(e.target.value,'typed');e.target.value=''}});if(S.review.some(r=>r.status==='looking'))setTimeout(bsWork,1500);$('#sc_file').onchange=scanPhoto;F('isbn').addEventListener('input',grSync);
+$('#scd').addEventListener('close',scStop);$('#bsd').addEventListener('close',bsStop);$('#bs_file').onchange=bsPhotos;$('#bl_txt').addEventListener('input',blCount);$('#bl_file').onchange=async e=>{const fl=e.target.files[0];if(!fl)return;try{const t=await fl.text();const tx=$('#bl_txt');tx.value=(tx.value.trim()?tx.value.trim()+'\n':'')+t;blCount()}catch(x){toast('That file could not be read.')}e.target.value=''};$('#bs_isbn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();bsSeen.delete(e.target.value.replace(/[^0-9Xx]/g,'').toUpperCase());bsAddIsbn(e.target.value,'typed');e.target.value=''}});if(S.review.some(r=>r.status==='looking'))setTimeout(bsWork,1500);$('#sc_file').onchange=scanPhoto;F('isbn').addEventListener('input',grSync);
 /* ---------- Audiobook player (streams from OneDrive) ---------- */
 const AEXT=/\.(mp3|m4a|m4b|aac|ogg|oga|opus|wav|flac|mp4)$/i;
 const isAud=it=>!!it.file&&(AEXT.test(it.name)||/^audio\//.test(it.file.mimeType||''));
@@ -1038,7 +1054,7 @@ function amScore(b,c){const bt=normT(b.title),cn=c.key;if(!bt||!cn)return 0;let 
  else{const tw=bt.split(' ').filter(w=>w.length>1),cw=new Set(cn.split(' '));if(tw.length>=2){const o=tw.filter(w=>cw.has(w)).length/tw.length;if(o>=.75)s=.6*o}}
  if(s&&b.author&&(' '+cn+' ').includes(' '+lastName(b.author)+' '))s+=.05;if(s&&c.kind==='folder')s+=.01;return s}
 async function amScan(){const cur=AB.stack[AB.stack.length-1];if(!cur)return;const ul=$('#ab_list');$('#ab_auto').classList.add('hide');
- const todo=S.books.filter(b=>b.formats.includes('audiobook')&&!b.audio);if(!todo.length){toast('Every audiobook is already linked.');return}
+ const todo=S.books.filter(b=>b.formats.includes('audiobook')&&!b.audio&&!b.noAudio);if(!todo.length){toast('Every audiobook is already linked.');return}
  try{const cands=[];let n=0,queue=[{id:cur.id,d:0}];
   const add=(kind,x,count)=>cands.push({kind,id:x.id,name:x.name,key:amKey(x.name),count});
   while(queue.length&&n<250){const batch=queue.splice(0,4);ul.innerHTML=`<li class="note">Looking through your folders… ${n} checked</li>`;
@@ -1149,10 +1165,12 @@ function apInit(){const sk=$('#ap_seek');
  $('#ap_speed').addEventListener('change',e=>{AP.rate=+e.target.value||1;try{localStorage.setItem('bs-aspeed',String(AP.rate))}catch(x){}if(AP.el)AP.el.defaultPlaybackRate=AP.el.playbackRate=AP.rate;apUI()});
  $('#ap_sleep').addEventListener('change',e=>apSleep(e.target.value));
  addEventListener('pagehide',()=>{if(AP.id)apKeep(true)});document.addEventListener('visibilitychange',()=>{if(document.hidden&&AP.id)apKeep(true)})}
-function vPlayer(){const bs=S.books.filter(b=>b.formats.includes('audiobook')).sort((a,b)=>ak(a).localeCompare(ak(b)));
- const row=b=>{const cv=RFS(b.cover);return `<div class="pv-r${b.id===AP.id?' on':''}"><button class="pv-c" data-det="${b.id}" aria-label="Details for ${esc(b.title)}" style="${cv?`background:#2a2430 url('${cv}') center/cover`:`background:${col(b)}`}"></button><div class="pv-i"><b>${esc(b.title)}</b><small>${esc(b.author||'')}</small><small>${b.mins?fmM(b.min||0)+' of '+fmM(b.mins):b.min?fmM(b.min)+' listened':''}</small></div>${b.audio?`<button class="pri" data-pl="${b.id}">${b.id===AP.id?'Now playing':b.apos?'Continue':'Listen'}</button>`:`<button data-pll="${b.id}">Link audio</button>`}</div>`};
+let PVH=false;
+function vPlayer(){const box_=$('#ap_box'),home_=$('#ap_home');if(box_&&box_.parentNode!==home_)home_.appendChild(box_);const all=S.books.filter(b=>b.formats.includes('audiobook')).sort((a,b)=>ak(a).localeCompare(ak(b))),bs=all.filter(b=>!b.noAudio),hid=all.filter(b=>b.noAudio);
+ const row=b=>{const cv=RFS(b.cover);return `<div class="pv-r${b.id===AP.id?' on':''}"><button class="pv-c" data-det="${b.id}" aria-label="Details for ${esc(b.title)}" style="${cv?`background:#2a2430 url('${cv}') center/cover`:`background:${col(b)}`}"></button><div class="pv-i"><b>${esc(b.title)}</b><small>${esc(b.author||'')}</small><small>${b.mins?fmM(b.min||0)+' of '+fmM(b.mins):b.min?fmM(b.min)+' listened':''}</small></div>${b.audio?`<button class="pri" data-pl="${b.id}">${b.id===AP.id?'Now playing':b.apos?'Continue':'Listen'}</button>`:`<span class="pv-b"><button data-pll="${b.id}">Link audio</button><button data-plh="${b.id}" title="Hide from the player">No audio</button></span>`}</div>`};
  $('#app').innerHTML=`<div class="panel pv-now" id="pv_now"><p id="pv_empty" class="note" style="margin:0">Nothing is playing. Pick an audiobook below.</p></div>${acct?'':'<p class="note">Connect OneDrive to listen: go to Stats, tap Sync &amp; backup, then OneDrive sync.</p>'}
- <div class="pv-top"><h2>Your audiobooks</h2>${acct&&bs.some(b=>!b.audio)?'<button data-act="amopen">Auto-link from a folder</button>':''}</div>${bs.length?`<div class="pv-list">${bs.map(row).join('')}</div>`:'<div class="empty">Books with the audiobook format show up here.</div>'}`;
+ <div class="pv-top"><h2>Your audiobooks</h2>${acct&&bs.some(b=>!b.audio)?'<button data-act="amopen">Auto-link from a folder</button>':''}</div>${bs.length?`<div class="pv-list">${bs.map(row).join('')}</div>`:`<div class="empty">${hid.length?'Every audiobook is hidden from the player.':'Books with the audiobook format show up here.'}</div>`}
+ ${hid.length?`<button class="pv-hb" data-act="pvhid" aria-expanded="${PVH}">${PVH?'▾':'▸'} Hidden from the player (${hid.length})</button>${PVH?`<div class="pv-list">${hid.map(b=>`<div class="pv-r"><div class="pv-i"><b>${esc(b.title)}</b><small>${esc(b.author||'')}</small></div><button data-pls="${b.id}">Show in player</button></div>`).join('')}</div>`:''}`:''}`;
  $('#pv_now').appendChild($('#ap_box'))}
 function streams(){
  const big=[],sm=[],ord={tape:0,phone:1},gk=(a,b)=>mainG(a.b).localeCompare(mainG(b.b));
@@ -1216,16 +1234,17 @@ document.addEventListener('click',e=>{
  if(x=g('[data-abfile]')){if(AB.mode==='auto')return;const it=AB.items.find(y=>y.id===x.dataset.abfile);if(it)abSet({kind:'file',id:it.id,name:it.name});return}
  if(x=g('[data-apt]')){apJump(+x.dataset.apt);return}
  if(x=g('[data-pl]')){apOpen(x.dataset.pl);return}
+ if(x=g('[data-plh]')||g('[data-pls]')){const hb=S.books.find(y=>y.id===(x.dataset.plh||x.dataset.pls));if(hb){if(x.dataset.plh){hb.noAudio=true;if(AP.id===hb.id)apStop(true)}else delete hb.noAudio;save();render();toast(x.dataset.plh?'Hidden from the player. It stays on your shelves.':'Back in the player list.')}return}
  if(x=g('[data-pll]')){abOpen(x.dataset.pll);return}
  if(x=g('[data-edit]')){openDet(x.dataset.edit);return}
  if(x=g('[data-act]')){const a=x.dataset.act;
   if(a==='sb')$('#sbd').showModal();if((a==='od'||a==='backup')&&$('#sbd').open)$('#sbd').close();
-  if(a==='add')openBook();if(a==='batch')bsOpen();if(a==='bsdone'){bsStop();$('#bsd').close();view='lib';render()}if(a==='bsadd'){bsSeen.delete($('#bs_isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase());bsAddIsbn($('#bs_isbn').value,'typed');$('#bs_isbn').value=''}if(a==='bsphoto')$('#bs_file').click();if(a==='revretry'){bsRetry();bsWork()}if(a==='revall')revAdd(S.review.filter(r=>r.status==='ready').map(r=>r.id));if(a==='ddedit'){$('#dd').close();openBook(detId)}if(a==='od'){$('#o_cid').value=localStorage.getItem('bs-cid')||'';$('#o_auth').value=localStorage.getItem('bs-auth')||'common';$('#o_st').textContent=$('#cs').textContent;$('#o_ru').textContent=RU();$('#odd').showModal()}if(a==='oconn')oConn();if(a==='osync')pull();if(a==='oout')oOut();if(a==='oreset')oReset();
+  if(a==='add')openBook();if(a==='batch')bsOpen();if(a==='bsdone'){bsStop();$('#bsd').close();view='lib';render()}if(a==='bsadd'){bsSeen.delete($('#bs_isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase());bsAddIsbn($('#bs_isbn').value,'typed');$('#bs_isbn').value=''}if(a==='bsphoto')$('#bs_file').click();if(a==='blopen'){blCount();$('#bld').showModal()}if(a==='blfile')$('#bl_file').click();if(a==='blgo')blGo();if(a==='revretry'){bsRetry();bsWork()}if(a==='revall')revAdd(S.review.filter(r=>r.status==='ready').map(r=>r.id));if(a==='ddedit'){$('#dd').close();openBook(detId)}if(a==='od'){$('#o_cid').value=localStorage.getItem('bs-cid')||'';$('#o_auth').value=localStorage.getItem('bs-auth')||'common';$('#o_st').textContent=$('#cs').textContent;$('#o_ru').textContent=RU();$('#odd').showModal()}if(a==='oconn')oConn();if(a==='osync')pull();if(a==='oout')oOut();if(a==='oreset')oReset();
   if(a==='save')saveBook();if(a==='scan')scan();if(a==='lookup')lookup();if(a==='scstop')scStop();if(a==='scphoto'){scStop();$('#sc_file').click()}if(a==='rmcov'){pend.cov='';imgNote()}if(a==='rmsp'){pend.sp='';F('usesp').checked=false;imgNote()}
   if(a==='close')x.closest('dialog').close();
   if(a==='aplisten'){$('#dd').close();apOpen(detId)}if(a==='aplink'){$('#dd').close();abOpen(detId)}
   if(a==='appp')apPP();if(a==='apback')apSeek(-30);if(a==='apfwd')apSeek(30);if(a==='apprev')apPrev();if(a==='apnext')apJump(AP.i+1);
-  if(a==='apstop')apStop();if(a==='apopen'){view='player';render();apList()}if(a==='apdet')openDet(AP.id);
+  if(a==='apstop')apStop();if(a==='pvhid'){PVH=!PVH;render()}if(a==='apopen'){view='player';render();apList()}if(a==='apdet')openDet(AP.id);
   if(a==='abuse'){const c_=AB.stack[AB.stack.length-1];if(c_)abSet({kind:'folder',id:c_.id,name:c_.name})}if(a==='abrm')abSet(null);if(a==='amopen')amOpen();if(a==='amscan')amScan();if(a==='amlink')amLink();
   if(a==='log')logIt();
   if(a==='del'){if(x.dataset.armed){S.books=S.books.filter(b=>b.id!==editId);S.log=S.log.filter(l=>l.bookId!==editId);save();$('#bd').close();render();toast('Deleted.')}else{x.dataset.armed=1;x.textContent='Tap again to delete'}}
