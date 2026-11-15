@@ -403,7 +403,7 @@ const grUrl=i=>{i=String(i||'').replace(/[^0-9Xx]/g,'');return i.length===10||i.
 function grSync(){const u=grUrl(F('isbn').value),a=$('#f_gr');a.classList.toggle('hide',!u);if(u)a.href=u}
 /* ---------- Books read tracker ---------- */
 const GC=['#666E40','#DD9A7A','#364062','#F8DD94','#3C100E'];
-let RP='year';
+let RP='month';
 const RPN={all:'all time',year:'this year',month:'this month'};
 function readIn(p){const n=new Date(),y=String(n.getFullYear()),m=today().slice(0,7);
  return S.books.filter(b=>b.status==='read'&&(p==='all'||(p==='year'?(b.fin?b.fin.startsWith(y):String(b.year)===y):!!b.fin&&b.fin.startsWith(m))))}
@@ -432,7 +432,7 @@ function statsPanel(){const rows=genreStats(),nb=S.books.length;if(!nb)return ''
  <p class="note" style="margin:8px 0 0">A book with several genres counts under each one. Tap a genre to show just those books${q&&rows.some(r=>r.name.toLowerCase()===q)?', or tap it again to show everything':''}.</p></details>`}
 document.addEventListener('toggle',e=>{if(e.target.matches&&e.target.matches('details.gs')){GSOPEN=e.target.open;try{localStorage.setItem('bs-gs',GSOPEN?'1':'0')}catch(x){}}},true);
 function vToday(){
- const t=today(),open=S.books.filter(b=>b.status!=='read').sort((a,b)=>(a.status==='reading'?0:1)-(b.status==='reading'?0:1));
+ const t=today(),open=S.books.filter(b=>b.status==='reading').sort((a,b)=>ak(a).localeCompare(ak(b)));
  const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(ymd(d))}
  const wk=S.log.filter(l=>l.date>=days[7]);const wp=wk.reduce((a,l)=>a+(l.pages||0),0),wm=wk.reduce((a,l)=>a+(l.mins||0),0);
  const reading=S.books.filter(b=>b.status==='reading');
@@ -444,7 +444,7 @@ function vToday(){
  <label id="l_pg_w">Page you’re on<input id="l_page" type="number" min="0" inputmode="numeric"></label>
  <label id="l_h_w">Hours in<input id="l_h" type="number" min="0" inputmode="numeric"></label><label id="l_m_w">Minutes<input id="l_m" type="number" min="0" max="59" inputmode="numeric"></label>
  <label>Date<input id="l_date" type="date" value="${t}"></label>
- <button class="pri" data-act="log">Log it</button></div><p class="note" id="l_last" style="margin:6px 0 0"></p>`:'<div class="empty">Add a book you are reading or plan to read, then log it here.</div>'}</div>
+ <button class="pri" data-act="log">Log it</button></div><p class="note" id="l_last" style="margin:6px 0 0"></p>`:'<div class="empty">No book is set to “Reading now”. Open a book, tap Edit book and set it to Reading now to log it here.</div>'}</div>
  <div class="panel"><h2>Last 14 days</h2><div class="days">${days.map(d=>{const L=S.log.filter(l=>l.date===d),p=L.reduce((a,l)=>a+(l.pages||0),0),m=L.reduce((a,l)=>a+(l.mins||0),0);
  return `<div class="dy ${L.length?'hit':''}" title="${d}: ${p} pages, ${m} min">${+d.slice(8)}</div>`}).join('')}</div></div>
  <div class="panel"><h2>Reading now</h2>${reading.length?reading.map(b=>`<div style="margin-bottom:10px;cursor:pointer" data-edit="${b.id}"><b>${esc(b.title)}</b> <span class="meta">${esc(b.author)}</span>${prog(b)}</div>`).join(''):'<div class="empty">Nothing in progress. Set a book to “Reading now” to see its progress here.</div>'}</div>
