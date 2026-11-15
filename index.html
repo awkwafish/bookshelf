@@ -89,6 +89,27 @@ input,select,textarea{background:var(--card);border:1px solid var(--line);border
 label{display:block;font-size:13px;color:var(--muted)}label input,label select,label textarea{margin-top:2px;color:var(--ink)}
 .days{display:flex;gap:4px;flex-wrap:wrap}.dy{width:36px;height:36px;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;font-size:12px;color:var(--muted)}
 .dy.hit{background:var(--accent);color:var(--on);border-color:var(--accent);font-weight:600}
+.ph{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.ph h2{margin:0}
+.lnk{background:none;border:1px solid var(--line);border-radius:999px;padding:5px 12px;font:600 13px/1 Figtree,sans-serif;color:var(--ink);cursor:pointer;min-height:32px}
+.rl{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}.rl>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;min-height:32px}
+.rl>summary::-webkit-details-marker{display:none}.rl>summary::after{content:'▾';color:var(--muted);transition:transform .15s}.rl:not([open])>summary::after{transform:rotate(-90deg)}
+.rl ul{list-style:none;margin:6px 0 0;padding:0}.rl li+li{border-top:1px solid color-mix(in srgb,var(--line) 55%,transparent)}
+.rb{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;padding:8px 2px;font:inherit;color:var(--ink);text-align:left;cursor:pointer;border-radius:6px}
+.rb-c{flex:0 0 auto;width:30px;height:45px;border-radius:2px 4px 4px 2px;background-size:cover;background-position:center;box-shadow:inset 3px 0 0 rgba(0,0,0,.2),0 1px 3px rgba(0,0,0,.25)}
+.rb-t{flex:1;min-width:0}.rb-t b{display:block;font:600 15px/1.25 Fraunces,Georgia,serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rb-t span{display:block;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rb-d{flex:0 0 auto;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.cal-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.cal-top h2{margin:0;text-align:center;flex:1}.cal-nav{width:40px;height:40px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--ink);font-size:18px;cursor:pointer}
+.cal-nav:disabled{opacity:.35;cursor:default}
+.cal-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal-w{text-align:center;font:600 11px/1 Figtree,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:4px 0}
+.cal-d{aspect-ratio:1;min-height:40px;border:1px solid var(--line);border-radius:8px;background:none;color:var(--muted);font:inherit;font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;padding:2px}
+.cal-d small{font-size:10px;line-height:1.1;opacity:.9;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-d.hit{background:var(--accent);color:var(--on);border-color:var(--accent);font-weight:600}
+.cal-d.now{box-shadow:0 0 0 2px var(--ink) inset}.cal-d.sel{outline:3px solid #DD9A7A;outline-offset:1px}
+.cal-d.fut{opacity:.45}.cal-x{visibility:hidden}
+.cal-sum{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0 0;color:var(--muted);font-size:14px}.cal-sum b{color:var(--ink)}
+
 .lg{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:14px}
 .lg button{padding:0 8px;border-radius:6px}
 /* bookshelf */
@@ -234,6 +255,18 @@ button.gb-n.on{font-weight:600;text-decoration-color:var(--accent)}
 @media (prefers-reduced-motion:reduce){.pie path{transition:none}}
 a.gr{color:var(--accent);font-weight:600;font-size:14px;text-underline-offset:3px}
 .grid.books{grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:20px 14px}
+.lv-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 12px;flex-wrap:wrap}
+.lv-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.lv-r select{width:auto;padding:5px 30px 5px 10px;font-size:14px;min-height:32px}
+.lv .lv-g,.grid.books .lv-g{font:600 12px/1.2 Figtree,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.lv .lv-g{padding:10px 12px 6px;background:color-mix(in srgb,var(--line) 22%,transparent)}
+.grid.books .lv-g{grid-column:1/-1;margin:6px 0 -8px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.lv{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.lv li+li{border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.lv .rb{padding:10px 12px;border-radius:0}.lv .rb-c{width:40px;height:60px}
+.lv .rb-t i{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{flex:0 0 auto;font:600 12px/1 Figtree,sans-serif;padding:5px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.pill.reading{background:var(--accent);border-color:var(--accent);color:var(--on)}.pill.read{background:color-mix(in srgb,var(--line) 45%,transparent);color:var(--ink)}
+
 .bt{display:flex;flex-direction:column;gap:8px;min-width:0}
 .bt-c{display:block;width:100%;aspect-ratio:2/3;padding:0;border:2px solid #1b1420;border-radius:3px 7px 7px 3px;overflow:hidden;background:var(--line);cursor:pointer;box-shadow:inset 4px 0 0 rgba(0,0,0,.18),0 4px 10px rgba(0,0,0,.25)}
 .bt-c img{display:block;width:100%;height:100%;object-fit:cover}
@@ -419,9 +452,10 @@ function navSync(){const t=$('#tab_rv');if(!t)return;const n=(S.review||[]).leng
 function render(){
  gAuto();
  const box=$('#ap_box'),home=$('#ap_home');if(box&&box.parentNode!==home)home.appendChild(box);
- document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===view));
- document.querySelectorAll('[data-on]').forEach(b=>b.classList.toggle('hide',!b.dataset.on.split(',').includes(view)));
- navSync();({today:vToday,lib:vLib,shelf:vShelf,player:vPlayer,review:vReview})[view]();
+ const tv=view==='cal'?'today':view;
+ document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===tv));
+ document.querySelectorAll('[data-on]').forEach(b=>b.classList.toggle('hide',!b.dataset.on.split(',').includes(tv)));
+ navSync();({today:vToday,lib:vLib,shelf:vShelf,player:vPlayer,review:vReview,cal:vCal})[view]();
  if(typeof AP==='object')apUI()
 }
 /* ---------- Today ---------- */
@@ -430,7 +464,15 @@ const grUrl=i=>{i=String(i||'').replace(/[^0-9Xx]/g,'');return i.length===10||i.
 function grSync(){const u=grUrl(F('isbn').value),a=$('#f_gr');a.classList.toggle('hide',!u);if(u)a.href=u}
 /* ---------- Books read tracker ---------- */
 const GC=['#666E40','#DD9A7A','#364062','#F8DD94','#3C100E'];
-let RP='month';
+let RP='month',RLOPEN=true;try{RLOPEN=localStorage.getItem('bs-rl')!=='0'}catch(e){}
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmDay=d=>d?MON[+d.slice(5,7)-1]+' '+(+d.slice(8,10))+(d.slice(0,4)===String(new Date().getFullYear())?'':', '+d.slice(0,4)):'';
+function readList(list){
+ const srt=[...list].sort((a,b)=>(b.fin||'').localeCompare(a.fin||'')||(+b.year||0)-(+a.year||0)||ak(a).localeCompare(ak(b)));
+ return `<details class="rl" ${RLOPEN?'open':''}><summary><h3 class="gb-h" style="margin:0">The ${srt.length===1?'book':srt.length+' books'}</h3></summary><ul>${srt.map(b=>{const cv=RFS(b.cover);
+  const when=b.fin?fmDay(b.fin):(b.year?String(b.year):'');
+  return `<li><button class="rb" data-det="${b.id}" aria-label="${esc(b.title)}${when?', finished '+esc(when):''}, show details"><span class="rb-c" style="background:${cv?`url('${esc(cv)}') center/cover`:col(b)}"></span><span class="rb-t"><b>${esc(b.title)}</b><span>${esc(b.author||'')}</span></span><span class="rb-d">${esc(when)}</span></button></li>`}).join('')}</ul></details>`}
+document.addEventListener('toggle',e=>{if(e.target.matches&&e.target.matches('details.rl')){RLOPEN=e.target.open;try{localStorage.setItem('bs-rl',RLOPEN?'1':'0')}catch(x){}}},true);
 const RPN={all:'all time',year:'this year',month:'this month'};
 function readIn(p){const n=new Date(),y=String(n.getFullYear()),m=today().slice(0,7);
  return S.books.filter(b=>b.status==='read'&&(p==='all'||(p==='year'?(b.fin?b.fin.startsWith(y):String(b.year)===y):!!b.fin&&b.fin.startsWith(m))))}
@@ -445,7 +487,7 @@ function readPanel(){
  return `<div class="panel rp"><div class="rp-h"><h2>Books read</h2><div class="seg" role="group" aria-label="Time period">${['year','month','all'].map(k=>`<button data-rp="${k}" class="${RP===k?'on':''}" aria-pressed="${RP===k}">${k==='all'?'All time':k==='year'?'This year':'This month'}</button>`).join('')}</div></div>
  <p class="rp-big"><b>${n}</b> ${n===1?'book':'books'} read ${RPN[RP]}</p>
  ${n?`<h3 class="gb-h">By genre</h3>${barList(rows,n)}
- <p class="note" style="margin:8px 0 0">Each book counts once, under its first genre.${undated?` ${undated} ${undated===1?'book':'books'} read this year ${undated===1?'has':'have'} no finish date, so ${undated===1?'it isn’t':'they aren’t'} counted here. Add a date finished to include ${undated===1?'it':'them'}.`:''}</p>`
+ <p class="note" style="margin:8px 0 0">Each book counts once, under its first genre.${undated?` ${undated} ${undated===1?'book':'books'} read this year ${undated===1?'has':'have'} no finish date, so ${undated===1?'it isn’t':'they aren’t'} counted here. Add a date finished to include ${undated===1?'it':'them'}.`:''}</p>${readList(list)}`
  :`<div class="empty">${RP==='all'?'Mark a book as Read and it will show up here.':'No books finished '+RPN[RP]+' yet. Mark a book as Read to add it.'}</div>`}</div>`
 }
 let GSALL=false,GSOPEN=true;try{GSOPEN=localStorage.getItem('bs-gs')!=='0'}catch(e){}
@@ -472,11 +514,32 @@ function vToday(){
  <label id="l_h_w">Hours in<input id="l_h" type="number" min="0" inputmode="numeric"></label><label id="l_m_w">Minutes<input id="l_m" type="number" min="0" max="59" inputmode="numeric"></label>
  <label>Date<input id="l_date" type="date" value="${t}"></label>
  <button class="pri" data-act="log">Log it</button></div><p class="note" id="l_last" style="margin:6px 0 0"></p>`:'<div class="empty">No book is set to “Reading now”. Open a book, tap Edit book and set it to Reading now to log it here.</div>'}</div>
- <div class="panel"><h2>Last 14 days</h2><div class="days">${days.map(d=>{const L=S.log.filter(l=>l.date===d),p=L.reduce((a,l)=>a+(l.pages||0),0),m=L.reduce((a,l)=>a+(l.mins||0),0);
- return `<div class="dy ${L.length?'hit':''}" title="${d}: ${p} pages, ${m} min">${+d.slice(8)}</div>`}).join('')}</div></div>
+ <div class="panel"><div class="ph"><h2>Last 14 days</h2><button class="lnk" data-cal="open">Calendar</button></div><div class="days">${days.map(d=>{const L=S.log.filter(l=>l.date===d),p=L.reduce((a,l)=>a+(l.pages||0),0),m=L.reduce((a,l)=>a+(l.mins||0),0);
+ return `<button class="dy ${L.length?'hit':''}" style="background-clip:padding-box;font:inherit;font-size:12px;cursor:pointer" data-cal="${d}" title="${d}: ${p} pages, ${m} min" aria-label="${fmDay(d)}: ${L.length?p+' pages, '+m+' minutes':'nothing logged'}. Open in calendar">${+d.slice(8)}</button>`}).join('')}</div></div>
  <div class="panel"><h2>Reading now</h2>${reading.length?reading.map(b=>`<div style="margin-bottom:10px;cursor:pointer" data-edit="${b.id}"><b>${esc(b.title)}</b> <span class="meta">${esc(b.author)}</span>${prog(b)}</div>`).join(''):'<div class="empty">Nothing in progress. Set a book to “Reading now” to see its progress here.</div>'}</div>
  <div class="panel"><h2>Recent entries</h2>${recent.length?recent.map(l=>{const b=S.books.find(x=>x.id===l.bookId);return `<div class="lg"><span>${l.date} · ${esc(b?b.title:'Removed book')}</span><span>${l.pages?l.pages+' pages':''}${l.mins?fmM(l.mins):''} <button data-dl="${l.id}" aria-label="Delete entry">×</button></span></div>`}).join(''):'<div class="meta">No entries yet.</div>'}</div>`;
  if($('#l_book')){$('#l_book').onchange=logSync;$('#l_kind').onchange=logSync;logSync()}
+}
+/* ---------- Reading calendar ---------- */
+let CALM=today().slice(0,7),CALD=today();
+function vCal(){
+ const t=today(),[y,m]=CALM.split('-').map(Number),first=new Date(y,m-1,1),nd=new Date(y,m,0).getDate(),lead=first.getDay();
+ const name=first.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+ const byD={};S.log.forEach(l=>{(byD[l.date]=byD[l.date]||[]).push(l)});
+ const mins=Object.keys(byD).sort()[0]||t;const canPrev=CALM>mins.slice(0,7),canNext=CALM<t.slice(0,7);
+ let cells='';for(let i=0;i<lead;i++)cells+='<span class="cal-d cal-x"></span>';
+ let mp=0,mm=0,md=0;
+ for(let d=1;d<=nd;d++){const ds=CALM+'-'+String(d).padStart(2,'0'),L=byD[ds]||[],p=L.reduce((a,l)=>a+(l.pages||0),0),mi=L.reduce((a,l)=>a+(l.mins||0),0);
+  if(L.length){mp+=p;mm+=mi;md++}
+  const sub=L.length?(p?p+'p':fmM(mi)):'';
+  cells+=`<button class="cal-d${L.length?' hit':''}${ds===t?' now':''}${ds===CALD?' sel':''}${ds>t?' fut':''}" data-cd="${ds}" aria-pressed="${ds===CALD}" aria-label="${fmDay(ds)}${L.length?': '+p+' pages, '+mi+' minutes':''}">${d}${sub?`<small>${esc(sub)}</small>`:''}</button>`}
+ const L=(byD[CALD]||[]).slice();
+ $('#app').innerHTML=`<div class="bar"><button class="lnk" data-cal="back" style="flex:0 0 auto">‹ Back to Stats</button></div>
+ <div class="panel"><div class="cal-top"><button class="cal-nav" data-cm="-1" aria-label="Previous month" ${canPrev?'':'disabled'}>‹</button><h2>${esc(name)}</h2><button class="cal-nav" data-cm="1" aria-label="Next month" ${canNext?'':'disabled'}>›</button></div>
+ <div class="cal-g">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(w=>`<span class="cal-w">${w.slice(0,window.innerWidth<420?1:3)}</span>`).join('')}${cells}</div>
+ <div class="cal-sum"><span><b>${md}</b> ${md===1?'day':'days'} read</span><span><b>${mp}</b> pages</span><span><b>${fmM(mm)||'0m'}</b> listened</span></div>
+ ${CALM!==t.slice(0,7)?`<p style="margin:10px 0 0"><button class="lnk" data-cal="${t}">Jump to today</button></p>`:''}</div>
+ <div class="panel"><h2>${esc(fmDay(CALD))}${CALD===t?' · today':''}</h2>${L.length?L.map(l=>{const b=S.books.find(x=>x.id===l.bookId);return `<div class="lg"><span>${b?`<a href="#" data-det="${b.id}" style="color:inherit">${esc(b.title)}</a>`:'Removed book'}</span><span>${[l.pages?l.pages+' pages':'',l.mins?fmM(l.mins):''].filter(Boolean).join(' · ')} <button data-dl="${l.id}" aria-label="Delete entry">×</button></span></div>`}).join(''):'<div class="meta">Nothing logged this day.</div>'}</div>`
 }
 function logSync(){const sel=$('#l_book');if(!sel)return;const b=S.books.find(x=>x.id===sel.value);if(!b)return;
  const canP=phys(b)||b.formats.includes('ebook')||!b.formats.length,canT=b.formats.includes('audiobook');
@@ -504,8 +567,8 @@ function vLib(){
  $('#app').innerHTML=`${statsPanel()}<div class="bar"><input id="q" placeholder="Search title, author or genre" value="${esc(filt.q)}">
  <select id="fs"><option value="all">All statuses</option>${Object.entries(ST).map(([k,v])=>`<option value="${k}" ${filt.s===k?'selected':''}>${v}</option>`).join('')}</select>
  <select id="ff"><option value="all">All formats</option>${['hardcover','paperback','ebook','audiobook'].map(k=>`<option value="${k}" ${filt.f===k?'selected':''}>${k[0].toUpperCase()+k.slice(1)}</option>`).join('')}</select></div>
- ${S.books.some(b=>b.sample)?'<p class="note">These are sample books. <button data-act="clearsamples">Remove samples</button></p>':''}<div id="list" class="grid books"></div>`;
- $('#q').oninput=e=>{filt.q=e.target.value;list()};$('#fs').onchange=e=>{filt.s=e.target.value;list()};$('#ff').onchange=e=>{filt.f=e.target.value;list()};list()
+ ${S.books.some(b=>b.sample)?'<p class="note">These are sample books. <button data-act="clearsamples">Remove samples</button></p>':''}<div class="lv-h"><span class="meta" id="lcount"></span><div class="lv-r"><label class="meta" style="display:flex;align-items:center;gap:6px">Sort<select id="ls" aria-label="Sort books"><option value="az" ${LSORT==='az'?'selected':''}>Title A–Z</option><option value="series" ${LSORT==='series'?'selected':''}>Series</option></select></label><div class="seg" role="group" aria-label="Library layout">${[['covers','Covers'],['list','List']].map(([k,v])=>`<button data-lv="${k}" class="${LV===k?'on':''}" aria-pressed="${LV===k}">${v}</button>`).join('')}</div></div></div><div id="list" class="${LV==='list'?'':'grid books'}"></div>`;
+ $('#q').oninput=e=>{filt.q=e.target.value;list()};$('#fs').onchange=e=>{filt.s=e.target.value;list()};$('#ff').onchange=e=>{filt.f=e.target.value;list()};$('#ls').onchange=e=>{LSORT=e.target.value;try{localStorage.setItem('bs-ls',LSORT)}catch(x){}list()};list()
 }
 /* ---------- Bookshelf ---------- */
 function pieces(b){const p=[];if(phys(b))p.push({b,kind:isComic(b)?'comic':'book',hard:b.formats.includes('hardcover')});if(b.formats.includes('audiobook'))p.push({b,kind:'tape'});if(b.formats.includes('ebook'))p.push({b,kind:'phone'});return p}
@@ -711,10 +774,25 @@ function rackHtml(items,RW,id){
 /* ---------- Library and form ---------- */
 let detId=null;
 const grLink=b=>{const u=typeof grUrl==='function'?grUrl(b.isbn):'';return u?`<p style="margin:10px 0 0"><a class="gr" href="${u}" target="_blank" rel="noopener">View on Goodreads</a></p>`:''};
+let LV='covers',LSORT='az';try{LSORT=localStorage.getItem('bs-ls')==='series'?'series':'az'}catch(e){}
+const art=t=>String(t||'').trim().toLowerCase().replace(/^(the|an|a)\s+/,'');
+const cmpS=(x,y)=>x.localeCompare(y,undefined,{numeric:true,sensitivity:'base'});
+const azCmp=(a,b)=>cmpS(art(a.title),art(b.title))||cmpS(art(a.author),art(b.author));
+const serCmp=(a,b)=>cmpS(art(a.series),art(b.series))||(+a.sno||0)-(+b.sno||0)||azCmp(a,b);try{LV=localStorage.getItem('bs-lv')==='list'?'list':'covers'}catch(e){}
+const FMN={hardcover:'Hardcover',paperback:'Paperback',ebook:'Ebook',audiobook:'Audiobook'};
+function listRow(b){const cv=RFS(b.cover),ser=b.series?esc(b.series)+(b.sno?' #'+esc(String(b.sno)):''):'';
+ const sub=[b.formats.map(f=>FMN[f]||f).join(', '),b.status==='read'&&b.fin?'Finished '+fmDay(b.fin):'',b.status==='reading'&&prog(b)?String(prog(b)).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim():''].filter(Boolean).join(' · ');
+ return `<li><button class="rb" data-det="${b.id}" aria-label="${esc(b.title)}, ${esc(ST[b.status]||'')}, show details"><span class="rb-c" style="background:${cv?`url('${esc(cv)}') center/cover`:col(b)}"></span><span class="rb-t"><b>${esc(b.title)}</b><span>${esc(b.author||'')}${ser?' · '+ser:''}</span>${sub?`<i>${esc(sub)}</i>`:''}</span><span class="pill ${b.status}">${esc(ST[b.status]||'')}</span></button></li>`}
 function list(){
  const q=filt.q.toLowerCase();
- const r=S.books.filter(b=>(filt.s==='all'||b.status===filt.s)&&(filt.f==='all'||b.formats.includes(filt.f))&&(!q||(b.title+' '+b.author+' '+b.genres.join(' ')+' '+(b.series||'')).toLowerCase().includes(q))).sort((a,b)=>sk(a).localeCompare(sk(b)));
- $('#list').innerHTML=r.length?r.map(b=>{const cv=RFS(b.cover);return `<div class="bt"><button class="bt-c" data-det="${b.id}" aria-label="${esc(b.title)}, show details">${cv?`<img src="${esc(cv)}" alt="" loading="lazy">`:`<span class="bt-f" style="background:${col(b)}"><b>${esc(b.title)}</b><i>${esc(b.author)}</i></span>`}</button></div>`}).join(''):'<div class="empty">No books match. Use “Add book” to start your list.</div>'
+ const r=S.books.filter(b=>(filt.s==='all'||b.status===filt.s)&&(filt.f==='all'||b.formats.includes(filt.f))&&(!q||(b.title+' '+b.author+' '+b.genres.join(' ')+' '+(b.series||'')).toLowerCase().includes(q)));
+ const ser=r.filter(b=>(b.series||'').trim()).sort(serCmp),solo=r.filter(b=>!(b.series||'').trim()).sort(azCmp);
+ if(LSORT==='series'){r.length=0;r.push(...ser,...solo)}else r.sort(azCmp);
+ const grpOf=b=>LSORT!=='series'?'':((b.series||'').trim()||'\u0000solo'),grpName=g=>g==='\u0000solo'?'Not in a series':g;
+ const withHeads=(row,head)=>{let last=null,o='';r.forEach(b=>{const g=grpOf(b);if(LSORT==='series'&&art(g)!==art(last)&&(ser.length||g!=='\u0000solo')){const n=r.filter(x=>art(grpOf(x))===art(g)).length;o+=head(esc(grpName(g))+(g==='\u0000solo'?'':` · ${n} ${n===1?'book':'books'}`));last=g}o+=row(b)});return o};
+ const lc=$('#lcount');if(lc)lc.textContent=r.length+(r.length===1?' book':' books');
+ if(LV==='list'){$('#list').innerHTML=r.length?`<ul class="lv">${withHeads(listRow,h=>`<li class="lv-g" role="presentation">${h}</li>`)}</ul>`:'<div class="empty">No books match. Use “Add book” to start your list.</div>';return}
+ $('#list').innerHTML=r.length?withHeads(b=>{const cv=RFS(b.cover);return `<div class="bt"><button class="bt-c" data-det="${b.id}" aria-label="${esc(b.title)}, show details">${cv?`<img src="${esc(cv)}" alt="" loading="lazy">`:`<span class="bt-f" style="background:${col(b)}"><b>${esc(b.title)}</b><i>${esc(b.author)}</i></span>`}</button></div>`},h=>`<div class="lv-g">${h}</div>`):'<div class="empty">No books match. Use “Add book” to start your list.</div>'
 }
 function cleanUrl(v){v=String(v||'').trim();if(!v)return '';if(!/^[a-z][a-z0-9+.-]*:/i.test(v))v='https://'+v;try{const u=new URL(v);return /^https?:$/.test(u.protocol)?u.href:''}catch(e){return ''}}
 function linkName(url,kind){let h='';try{h=new URL(url).hostname.replace(/^www\./,'')}catch(e){}
@@ -1290,16 +1368,21 @@ if(document.fonts){const reShelf=()=>{if(view==='shelf'&&!document.querySelector
 let rzT;addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(()=>{if(view==='shelf')vShelf()},150)});
 document.addEventListener('click',e=>{
  const g=s=>e.target.closest(s);let x;
+ if(x=g('a[data-det]')){e.preventDefault();openDet(x.dataset.det);return}
  if(g('a[href]'))return;
+ if(x=g('[data-cal]')){const v=x.dataset.cal;if(v==='back'){view='today';render();scrollTo(0,0);return}if(v!=='open'){CALD=v;CALM=v.slice(0,7)}else{CALD=today();CALM=CALD.slice(0,7)}view='cal';render();scrollTo(0,0);return}
+ if(x=g('[data-cd]')){CALD=x.dataset.cd;vCal();return}
+ if(x=g('[data-cm]')){const[y,m]=CALM.split('-').map(Number),d=new Date(y,m-1+(+x.dataset.cm),1);CALM=d.toLocaleDateString('en-CA').slice(0,7);vCal();return}
  if(x=g('[data-rp]')){RP=x.dataset.rp;vToday();return}
  if(x=g('[data-gq]')){filt.q=filt.q.toLowerCase()===x.dataset.gq.toLowerCase()?'':x.dataset.gq;vLib();return}
+ if(x=g('[data-lv]')){LV=x.dataset.lv;try{localStorage.setItem('bs-lv',LV)}catch(e){}vLib();return}
  if(x=g('[data-gsall]')){GSALL=!GSALL;vLib();return}
  
  if(x=g('[data-tab]')){view=x.dataset.tab;render();return}
  if(x=g('[data-mode]')){mode=x.dataset.mode;vShelf();return}
  if(x=g('[data-ta]')){trAct(x.dataset.ta);return}
  if(x=g('[data-tr]')){trId=x.dataset.tr;$('#t_img').src=ref(S.trinkets.find(t=>t.id===trId).src);$('#td').showModal();return}
- if(x=g('[data-dl]')){const l=S.log.find(l=>l.id===x.dataset.dl);S.log=S.log.filter(l=>l.id!==x.dataset.dl);save();vToday();return}
+ if(x=g('[data-dl]')){const l=S.log.find(l=>l.id===x.dataset.dl);S.log=S.log.filter(l=>l.id!==x.dataset.dl);save();render();return}
  if(x=g('[data-rv-add]')){revAdd([x.dataset.rvAdd]);return}
  if(x=g('[data-rv-retry]')){bsRetry([x.dataset.rvRetry]);return}
  if(x=g('[data-rv-edit]')){const r=S.review.find(y=>y.id===x.dataset.rvEdit);if(r)openBook(null,r);return}
