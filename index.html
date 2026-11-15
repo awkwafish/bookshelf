@@ -350,7 +350,7 @@ body.has-apb main{padding-bottom:110px}body.has-apb #toast{bottom:calc(84px + en
 <div class="row"><label>Set or series<input id="f_series" list="sl" placeholder="Name of the set"></label><label>Number in the set<input id="f_sno" type="number" min="1"></label></div>
 <datalist id="sl"></datalist>
 <label>This book is a sequel to<select id="f_seqof"></select></label>
-<label>Collection<input id="f_coll" list="cl" placeholder="e.g. Wizard of Oz (leave blank if none)"></label>
+<div class="row"><label>Collection<select id="f_csel"></select></label><label id="r_cnew" class="hide">New collection name<input id="f_coll" placeholder="e.g. Wizard of Oz"></label></div>
 <datalist id="cl"></datalist><datalist id="il"></datalist>
 <details class="edx" id="f_edx"><summary>Edition details for this copy</summary><div class="fm" style="margin-top:8px">
 <div class="row"><label>Publisher<input id="f_pub"></label><label>Year published<input id="f_pyr" type="number" min="1500" max="2100" inputmode="numeric"></label></div>
@@ -842,6 +842,10 @@ function edBlock(b){
  const cs=copies(b);
  return `<div class="eds"><h3>${cs.length} ${cs.length===1?'copy':'copies'}${collOf(b)?' · '+esc(collOf(b))+' collection':''}</h3><ul>${cs.map(c=>{const cv=c.cover?RFS(c.cover):'',more=cpMore(c);
   return `<li><span class="ec" style="${cv?`background-image:url('${esc(cv)}')`:`background:${col(b)}`}"></span><span class="et"><b>${esc(cpLine(c))}</b>${c.main?'<small>Main copy · edit with Edit book</small>':''}${more?`<small>${esc(more)}</small>`:''}</span>${c.main?'':`<button class="eb" data-ede="${c.id}">Edit</button>`}</li>`}).join('')}</ul><button class="eb" data-act="edadd">Add an edition</button></div>`}
+function cSel(v){const cs=colls();if(v&&!cs.includes(v))cs.push(v);
+ $('#f_csel').innerHTML='<option value="">None</option>'+cs.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')+'<option value="\u0001new">New collection…</option>';
+ $('#f_csel').value=v;F('coll').value='';$('#r_cnew').classList.add('hide')}
+document.addEventListener('change',e=>{if(e.target.id!=='f_csel')return;const nw=e.target.value==='\u0001new';$('#r_cnew').classList.toggle('hide',!nw);if(nw)F('coll').focus()});
 function collLists(){$('#cl').innerHTML=colls().map(c=>`<option value="${esc(c)}">`).join('');
  const il=new Set();S.books.forEach(b=>{if(b.ed&&b.ed.ill)il.add(b.ed.ill);(b.eds||[]).forEach(e=>e.ill&&il.add(e.ill))});$('#il').innerHTML=[...il].map(c=>`<option value="${esc(c)}">`).join('')}
 let edId=null,edPend='';
@@ -879,7 +883,7 @@ function openBook(id,draft){
  F('title').value=b.title;$('#f_lmsg').textContent='';F('elink').value=b.elink||'';F('alink').value=b.alink||'';F('author').value=b.author;F('genres').value=b.genres.join(', ');F('own').value=b.own;F('from').value=b.from;F('pages').value=b.pages||'';
  F('h').value=b.mins?Math.floor(b.mins/60):'';F('m').value=b.mins?b.mins%60:'';F('status').value=b.status;F('year').value=b.year||'';F('fin').value=b.fin||'';F('page').value=b.page||'';F('min').value=b.min||'';F('sum').value=b.summary;
  F('series').value=b.series||'';F('isbn').value=b.isbn||'';grSync();F('sno').value=b.sno||'';F('cov').value='';F('spn').value='';F('usesp').checked=!!b.useSpine;pend={cov:b.cover||'',sp:b.spine||''};imgNote();
- {const e=b.ed||{};F('coll').value=b.coll||'';F('pub').value=e.pub||'';F('pyr').value=e.yr||'';F('ill').value=e.ill||'';F('cond').value=e.cond||'';F('src').value=e.src||'';F('acq').value=e.acq||'';F('ednote').value=e.notes||'';$('#f_edx').open=Object.values(e).some(Boolean)||!!b.coll;collLists()}
+ {const e=b.ed||{};cSel(b.coll||'');F('pub').value=e.pub||'';F('pyr').value=e.yr||'';F('ill').value=e.ill||'';F('cond').value=e.cond||'';F('src').value=e.src||'';F('acq').value=e.acq||'';F('ednote').value=e.notes||'';$('#f_edx').open=Object.values(e).some(Boolean)||!!b.coll;collLists()}
  $('#f_seqof').innerHTML='<option value="">Not a sequel</option>'+S.books.filter(x=>x.id!==id).sort((a,c)=>a.title.localeCompare(c.title)).map(x=>`<option value="${x.id}" ${x.id===b.sequelOf?'selected':''}>${esc(x.title)}</option>`).join('');
  $('#sl').innerHTML=[...new Set(S.books.map(x=>x.series).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join('');
  document.querySelectorAll('#f_fmts input').forEach(i=>i.checked=b.formats.includes(i.value));
@@ -890,7 +894,7 @@ function saveBook(){
  const fm=[...document.querySelectorAll('#f_fmts input:checked')].map(i=>i.value);
  const o={title,author:F('author').value.trim(),genres:F('genres').value.split(',').map(x=>x.trim()).filter(Boolean),formats:fm,own:F('own').value,from:F('own').value==='borrowed'?F('from').value.trim():'',
  pages:fm.some(x=>x!=='audiobook')?+F('pages').value||0:0,mins:fm.includes('audiobook')?(+F('h').value||0)*60+(+F('m').value||0):0,status:F('status').value,year:F('status').value==='read'?(+F('year').value||''):'',
- page:+F('page').value||0,min:+F('min').value||0,summary:F('sum').value.trim(),isbn:F('isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase(),series:F('series').value.trim(),sno:+F('sno').value||0,sequelOf:F('seqof').value,coll:F('coll').value.trim(),ed:{pub:F('pub').value.trim(),yr:+F('pyr').value||'',ill:F('ill').value.trim(),cond:F('cond').value,src:F('src').value.trim(),acq:F('acq').value,notes:F('ednote').value.trim()},cover:pend.cov,spine:pend.sp,useSpine:F('usesp').checked&&!!pend.sp};
+ page:+F('page').value||0,min:+F('min').value||0,summary:F('sum').value.trim(),isbn:F('isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase(),series:F('series').value.trim(),sno:+F('sno').value||0,sequelOf:F('seqof').value,coll:($('#f_csel').value==='\u0001new'?F('coll').value:$('#f_csel').value).trim(),ed:{pub:F('pub').value.trim(),yr:+F('pyr').value||'',ill:F('ill').value.trim(),cond:F('cond').value,src:F('src').value.trim(),acq:F('acq').value,notes:F('ednote').value.trim()},cover:pend.cov,spine:pend.sp,useSpine:F('usesp').checked&&!!pend.sp};
  o.elink=fm.includes('ebook')?cleanUrl(F('elink').value):'';o.alink=fm.includes('audiobook')?cleanUrl(F('alink').value):'';
  const prevB=editId&&S.books.find(x=>x.id===editId),thisY=new Date().getFullYear();
  o.fin=o.status==='read'?F('fin').value:'';
