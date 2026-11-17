@@ -230,6 +230,7 @@ label{display:block;font-size:13px;color:var(--muted)}label input,label select,l
 
 .rp-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .seg{display:flex;gap:4px}.seg button{padding:4px 12px;font-size:14px}
+.rp-open{display:flex;width:100%;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer}.rp-open .rp-big{display:block}.rp-go{color:var(--accent);font-weight:600;font-size:15px;white-space:nowrap}.bw-g{grid-column:1/-1}.bw{margin-top:18px}
 .rp-big{margin:10px 0 6px;color:var(--muted)}.rp-big b{font:700 32px/1 Fraunces,Georgia,serif;color:var(--ink);margin-right:4px}
 .rp-body{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
 .pie{width:min(220px,100%);flex:none;overflow:visible}
@@ -367,6 +368,7 @@ body.has-apb main{padding-bottom:110px}body.has-apb #toast{bottom:calc(84px + en
 <label><input type="checkbox" value="hardcover">Hardcover</label><label><input type="checkbox" value="paperback">Paperback</label><label><input type="checkbox" value="ebook">Ebook</label><label><input type="checkbox" value="audiobook">Audiobook</label></div></div>
 <div class="row"><label>Own or borrowed<select id="f_own"><option value="own">I own it</option><option value="borrowed">Borrowed</option></select></label>
 <label id="r_from">Borrowed from (library, person)<input id="f_from"></label></div>
+<p class="note hide" id="f_bnote" style="margin:0">Borrowed books are logged as read. They count in your reading stats and show under Borrowed books in the Library, but not on your shelves.</p>
 <div class="row"><label id="r_pages">Page count<input id="f_pages" type="number" min="0"></label>
 <label id="r_len">Audio length (hours)<input id="f_h" type="number" min="0"></label><label id="r_len2">minutes<input id="f_m" type="number" min="0" max="59"></label></div>
 <div class="row"><label>Reading status<select id="f_status"><option value="backlog">To read</option><option value="reading">Reading now</option><option value="read">Read</option></select></label>
@@ -459,6 +461,7 @@ const col=b=>gcol((b.genres&&b.genres[0])||'Unsorted');
 const inSet=b=>!!b.series&&S.books.filter(x=>x.series===b.series).length>1;
 const ak=b=>(inSet(b)?b.series:b.title).trim().toLowerCase().replace(/^(the|an|a)\s+/,'')+'|'+String(b.sno||0).padStart(4,'0')+'|'+b.title.toLowerCase();
 const mainG=b=>b.genres[0]||'Unsorted';
+const lent=b=>b.own==='borrowed';
 const phys=b=>b.formats.includes('hardcover')||b.formats.includes('paperback');
 const ST={backlog:'To read',reading:'Reading now',read:'Read'};
 const B=o=>Object.assign({id:uid(),genres:[],formats:['paperback'],own:'own',from:'',pages:0,mins:0,status:'backlog',year:'',summary:'',page:0,min:0,sample:true},o);
@@ -481,10 +484,10 @@ function navSync(){const t=$('#tab_rv');if(!t)return;const n=(S.review||[]).leng
 function render(){
  gAuto();
  const box=$('#ap_box'),home=$('#ap_home');if(box&&box.parentNode!==home)home.appendChild(box);
- const tv=view==='cal'?'today':view;
+ const tv=view==='cal'||view==='read'?'today':view;
  document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===tv));
  document.querySelectorAll('[data-on]').forEach(b=>b.classList.toggle('hide',!b.dataset.on.split(',').includes(tv)));
- navSync();({today:vToday,lib:vLib,shelf:vShelf,player:vPlayer,review:vReview,cal:vCal})[view]();
+ navSync();({read:vRead,today:vToday,lib:vLib,shelf:vShelf,player:vPlayer,review:vReview,cal:vCal})[view]();
  if(typeof AP==='object')apUI()
 }
 /* ---------- Today ---------- */
@@ -509,21 +512,25 @@ function genreSlots(){const c={};S.books.filter(b=>b.status==='read').forEach(b=
  const ord=Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b)),m={};ord.forEach((g,i)=>m[g]=i<GC.length?i:-1);return m}
 function barList(rows,total,pick){const mx=Math.max(1,...rows.map(r=>r.n));
  return `<ul class="gb">${rows.map(r=>{const v=`${r.n}${total?` · ${Math.round(r.n/total*100)}%`:''}`;return `<li>${pick?`<button class="gb-n${pick.on(r.name)?' on':''}" data-gq="${esc(r.name)}" aria-pressed="${pick.on(r.name)}" title="Show ${esc(r.name)} books">${esc(r.name)}</button>`:`<span class="gb-n">${esc(r.name)}</span>`}<span class="gb-t" aria-hidden="true"><span class="gb-f" style="width:${Math.max(2,r.n/mx*100).toFixed(1)}%;background:${gcol(r.name)}"></span></span><span class="gb-v">${v}</span></li>`}).join('')}</ul>`}
-function readPanel(){
- const list=readIn(RP),cnt={};list.forEach(b=>{const g=mainG(b);cnt[g]=(cnt[g]||0)+1});
- const n=list.length,rows=Object.keys(cnt).map(g=>({name:g,n:cnt[g]})).sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name));
+function readCounts(){const r=readIn(RP),cnt={};r.forEach(b=>{const g=mainG(b);cnt[g]=(cnt[g]||0)+1});
+ return{list:r,n:r.length,rows:Object.keys(cnt).map(g=>({name:g,n:cnt[g]})).sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name))}}
+const rpSeg=()=>`<div class="seg" role="group" aria-label="Time period">${['year','month','all'].map(k=>`<button data-rp="${k}" class="${RP===k?'on':''}" aria-pressed="${RP===k}">${k==='all'?'All time':k==='year'?'This year':'This month'}</button>`).join('')}</div>`;
+function readPanel(){const{n}=readCounts();
+ return `<div class="panel rp"><div class="rp-h"><h2>Books read</h2>${rpSeg()}</div>
+ <button class="rp-open" data-rd="open" aria-label="${n} ${n===1?'book':'books'} read ${RPN[RP]}. Show genres and books"><span class="rp-big"><b>${n}</b> ${n===1?'book':'books'} read ${RPN[RP]}</span><span class="rp-go">${n?'Genres and books':'Details'} ›</span></button></div>`}
+function vRead(){const{list,n,rows}=readCounts();
  const undated=RP==='month'?S.books.filter(b=>b.status==='read'&&!b.fin&&String(b.year)===String(new Date().getFullYear())).length:0;
- return `<div class="panel rp"><div class="rp-h"><h2>Books read</h2><div class="seg" role="group" aria-label="Time period">${['year','month','all'].map(k=>`<button data-rp="${k}" class="${RP===k?'on':''}" aria-pressed="${RP===k}">${k==='all'?'All time':k==='year'?'This year':'This month'}</button>`).join('')}</div></div>
+ $('#app').innerHTML=`<div class="bar"><button class="lnk" data-rd="back" style="flex:0 0 auto">‹ Back to Stats</button></div>
+ <div class="panel rp"><div class="rp-h"><h2>Books read</h2>${rpSeg()}</div>
  <p class="rp-big"><b>${n}</b> ${n===1?'book':'books'} read ${RPN[RP]}</p>
  ${n?`<h3 class="gb-h">By genre</h3>${barList(rows,n)}
- <p class="note" style="margin:8px 0 0">Each book counts once, under its first genre.${undated?` ${undated} ${undated===1?'book':'books'} read this year ${undated===1?'has':'have'} no finish date, so ${undated===1?'it isn’t':'they aren’t'} counted here. Add a date finished to include ${undated===1?'it':'them'}.`:''}</p>${readList(list)}`
- :`<div class="empty">${RP==='all'?'Mark a book as Read and it will show up here.':'No books finished '+RPN[RP]+' yet. Mark a book as Read to add it.'}</div>`}</div>`
-}
+ <p class="note" style="margin:8px 0 0">Each book counts once, under its first genre.${undated?` ${undated} ${undated===1?'book':'books'} read this year ${undated===1?'has':'have'} only a year, so ${undated===1?'it counts':'they count'} under This year but not This month.`:''}</p>${readList(list)}`
+ :`<div class="empty">${RP==='all'?'Mark a book as Read and it will show up here.':'No books finished '+RPN[RP]+' yet. Mark a book as Read to add it.'}${undated?` ${undated} ${undated===1?'book':'books'} read this year ${undated===1?'has':'have'} only a year, so ${undated===1?'it shows':'they show'} under This year.`:''}</div>`}</div>`}
 let GSALL=false,GSOPEN=true;try{GSOPEN=localStorage.getItem('bs-gs')!=='0'}catch(e){}
 function genreStats(){const m=new Map();
- S.books.forEach(b=>[...new Set((b.genres.length?b.genres:['Unsorted']).map(g=>g.trim().toLowerCase()).filter(Boolean))].forEach(k=>{const o=m.get(k)||{name:cap((b.genres.find(g=>g.trim().toLowerCase()===k)||'Unsorted').trim()),n:0};o.n++;m.set(k,o)}));
+ S.books.filter(b=>!lent(b)).forEach(b=>[...new Set((b.genres.length?b.genres:['Unsorted']).map(g=>g.trim().toLowerCase()).filter(Boolean))].forEach(k=>{const o=m.get(k)||{name:cap((b.genres.find(g=>g.trim().toLowerCase()===k)||'Unsorted').trim()),n:0};o.n++;m.set(k,o)}));
  return[...m.values()].sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name))}
-function statsPanel(){const rows=genreStats(),nb=S.books.length;if(!nb)return '';const show=GSALL?rows:rows.slice(0,8),q=filt.q.trim().toLowerCase();
+function statsPanel(){const rows=genreStats(),nb=S.books.filter(b=>!lent(b)).length;if(!nb)return '';const show=GSALL?rows:rows.slice(0,8),q=filt.q.trim().toLowerCase();
  return `<details class="panel gs" ${GSOPEN?'open':''}><summary><h2>Library genres</h2><span class="meta">${nb} ${nb===1?'book':'books'} · ${rows.length} ${rows.length===1?'genre':'genres'}</span></summary>
  ${barList(show,0,{on:n=>n.toLowerCase()===q})}
  ${rows.length>8?`<button class="gs-more" data-gsall="1">${GSALL?'Show top 8':'Show all '+rows.length+' genres'}</button>`:''}
@@ -605,11 +612,11 @@ function pieces(b){const p=[];if(phys(b))p.push({b,kind:isComic(b)?'comic':'book
 /* ---------- Book form ---------- */
 const F=id=>$('#f_'+id);
 function syncForm(){gpRender();
- const fm=[...document.querySelectorAll('#f_fmts input:checked')].map(i=>i.value),st=F('status').value;
- $('#r_from').classList.toggle('hide',F('own').value!=='borrowed');
+ const fm=[...document.querySelectorAll('#f_fmts input:checked')].map(i=>i.value);
+ const bor=F('own').value==='borrowed';$('#r_from').classList.toggle('hide',!bor);if(bor)F('status').value='read';F('status').disabled=bor;$('#f_bnote').classList.toggle('hide',!bor);
  $('#r_pages').classList.toggle('hide',!fm.some(x=>x!=='audiobook'));
  $('#r_len').classList.toggle('hide',!fm.includes('audiobook'));$('#r_alink').classList.toggle('hide',!fm.includes('audiobook'));$('#r_elink').classList.toggle('hide',!fm.includes('ebook'));$('#r_len2').classList.toggle('hide',!fm.includes('audiobook'));
- $('#r_year').classList.toggle('hide',st!=='read');$('#r_fin').classList.toggle('hide',st!=='read');$('#r_prog').classList.toggle('hide',st!=='reading')
+ const st=F('status').value;$('#r_year').classList.toggle('hide',st!=='read');$('#r_fin').classList.toggle('hide',st!=='read');$('#r_prog').classList.toggle('hide',st!=='reading')
 }
 /* ---------- OneDrive sync ---------- */
 const sk=b=>(b.series||b.title)+'|'+String(b.sno||0).padStart(4,'0')+'|'+b.title;
@@ -818,14 +825,17 @@ function list(){
  if(filt.c&&!colls().includes(filt.c))filt.c='';
  const srch=b=>[b.title,b.author,b.genres.join(' '),b.series,b.coll,...copies(b).map(c=>[c.pub,c.ill,c.notes,c.src].join(' '))].join(' ').toLowerCase();
  const r=S.books.filter(b=>(!filt.c||collOf(b)===filt.c)&&(filt.s==='all'||b.status===filt.s)&&(filt.f==='all'||allFmts(b).includes(filt.f))&&(!q||srch(b).includes(q)));
- const ser=r.filter(b=>(b.series||'').trim()).sort(serCmp),solo=r.filter(b=>!(b.series||'').trim()).sort(azCmp);
+ const ser=r.filter(b=>!lent(b)&&(b.series||'').trim()).sort(serCmp),solo=r.filter(b=>!lent(b)&&!(b.series||'').trim()).sort(azCmp);
+ const bw=r.filter(lent).sort(azCmp);{const keep=r.filter(b=>!lent(b));r.length=0;r.push(...keep)}
  const SM=filt.c?'series':LSORT;
  if(SM==='series'){r.length=0;r.push(...ser,...solo)}else r.sort(azCmp);
  const grpOf=b=>SM!=='series'?'':((b.series||'').trim()||'\u0000solo'),grpName=g=>g==='\u0000solo'?(filt.c?'Related books':'Not in a series'):g;
  const withHeads=(row,head)=>{let last=null,o='';r.forEach(b=>{const g=grpOf(b);if(SM==='series'&&art(g)!==art(last)&&(ser.length||g!=='\u0000solo')){const n=r.filter(x=>art(grpOf(x))===art(g)).length;o+=head(esc(grpName(g))+(g==='\u0000solo'?'':` · ${n} ${n===1?'book':'books'}`));last=g}o+=row(b)});return o};
- const lc=$('#lcount'),ncp=r.reduce((a,b)=>a+copies(b).length,0);if(lc)lc.textContent=r.length+(r.length===1?' book':' books')+(filt.c?` · ${ncp} ${ncp===1?'copy':'copies'}`:'');
- if(LV==='list'){$('#list').innerHTML=r.length?`<ul class="lv">${withHeads(b=>listRow(b)+(filt.c?copies(b).map(c=>`<li class="lv-e">${esc(cpLine(c))}</li>`).join(''):''),h=>`<li class="lv-g" role="presentation">${h}</li>`)}</ul>`:'<div class="empty">No books match. Use “Add book” to start your list.</div>';return}
- $('#list').innerHTML=r.length?withHeads(b=>{const cv=RFS(b.cover);return `<div class="bt"><button class="bt-c" data-det="${b.id}" aria-label="${esc(b.title)}, show details">${cv?`<img src="${esc(cv)}" alt="" loading="lazy">`:`<span class="bt-f" style="background:${col(b)}"><b>${esc(b.title)}</b><i>${esc(b.author)}</i></span>`}</button>${filt.c&&copies(b).length>1?`<span class="cpy">${copies(b).length} copies</span>`:''}</div>`},h=>`<div class="lv-g">${h}</div>`):'<div class="empty">No books match. Use “Add book” to start your list.</div>'
+ const lc=$('#lcount'),ncp=r.reduce((a,b)=>a+copies(b).length,0);if(lc)lc.textContent=r.length+(r.length===1?' book':' books')+(bw.length?` · ${bw.length} borrowed`:'')+(filt.c?` · ${ncp} ${ncp===1?'copy':'copies'}`:'');
+ const bwH=bw.length?`<section class="bw" aria-label="Borrowed books"><h2 class="coll-h">Borrowed books</h2><p class="note coll-n">${bw.length} ${bw.length===1?'book':'books'} you’ve read but don’t own. ${bw.length===1?'It isn’t':'They aren’t'} on your shelves, only in your reading stats.</p><ul class="lv">${bw.map(listRow).join('')}</ul></section>`:'';
+ const none=bw.length?'':'<div class="empty">No books match. Use “Add book” to start your list.</div>';
+ if(LV==='list'){$('#list').innerHTML=(r.length?`<ul class="lv">${withHeads(b=>listRow(b)+(filt.c?copies(b).map(c=>`<li class="lv-e">${esc(cpLine(c))}</li>`).join(''):''),h=>`<li class="lv-g" role="presentation">${h}</li>`)}</ul>`:none)+bwH;return}
+ $('#list').innerHTML=r.length?withHeads(b=>{const cv=RFS(b.cover);return `<div class="bt"><button class="bt-c" data-det="${b.id}" aria-label="${esc(b.title)}, show details">${cv?`<img src="${esc(cv)}" alt="" loading="lazy">`:`<span class="bt-f" style="background:${col(b)}"><b>${esc(b.title)}</b><i>${esc(b.author)}</i></span>`}</button>${filt.c&&copies(b).length>1?`<span class="cpy">${copies(b).length} copies</span>`:''}</div>`},h=>`<div class="lv-g">${h}</div>`)+(bw.length?`<div class="bw-g">${bwH}</div>`:''):(none+bwH)
 }
 function cleanUrl(v){v=String(v||'').trim();if(!v)return '';if(!/^[a-z][a-z0-9+.-]*:/i.test(v))v='https://'+v;try{const u=new URL(v);return /^https?:$/.test(u.protocol)?u.href:''}catch(e){return ''}}
 function linkName(url,kind){let h='';try{h=new URL(url).hostname.replace(/^www\./,'')}catch(e){}
@@ -834,7 +844,7 @@ const linkBtn=(url,kind,cls)=>`<a class="abtn ${cls||''}" href="${esc(url)}" tar
 function openLinks(b){const a=[];if(b.elink&&b.formats.includes('ebook'))a.push(linkBtn(b.elink,'ebook','pri'));if(b.alink&&b.formats.includes('audiobook'))a.push(linkBtn(b.alink,'audiobook','pri'));return a.length?`<div class="ol">${a.join('')}</div>`:''}
 /* ---------- Collections and editions ---------- */
 const collOf=b=>String(b.coll||'').trim();
-const colls=()=>[...new Set(S.books.map(collOf).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base'}));
+const colls=()=>[...new Set(S.books.filter(b=>!lent(b)).map(collOf).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base'}));
 const allFmts=b=>[...new Set([...(b.formats||[]),...(b.eds||[]).map(e=>e.fmt)])];
 const FMN2={hardcover:'Hardcover',paperback:'Paperback',ebook:'Ebook',audiobook:'Audiobook'};
 function copies(b){const m=Object.assign({},b.ed||{},{main:true,fmts:b.formats||[],cover:b.cover,isbn:b.isbn});return[m,...(b.eds||[]).map(e=>Object.assign({},e,{fmts:[e.fmt]}))]}
@@ -899,10 +909,11 @@ function saveBook(){
  const o={title,author:F('author').value.trim(),genres:F('genres').value.split(',').map(x=>x.trim()).filter(Boolean),formats:fm,own:F('own').value,from:F('own').value==='borrowed'?F('from').value.trim():'',
  pages:fm.some(x=>x!=='audiobook')?+F('pages').value||0:0,mins:fm.includes('audiobook')?(+F('h').value||0)*60+(+F('m').value||0):0,status:F('status').value,year:F('status').value==='read'?(+F('year').value||''):'',
  page:+F('page').value||0,min:+F('min').value||0,summary:F('sum').value.trim(),isbn:F('isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase(),series:F('series').value.trim(),sno:+F('sno').value||0,sequelOf:F('seqof').value,coll:($('#f_csel').value==='\u0001new'?F('coll').value:$('#f_csel').value).trim(),ed:{pub:F('pub').value.trim(),yr:+F('pyr').value||'',ill:F('ill').value.trim(),cond:F('cond').value,src:F('src').value.trim(),acq:F('acq').value,notes:F('ednote').value.trim()},cover:pend.cov,spine:pend.sp,useSpine:F('usesp').checked&&!!pend.sp};
+ if(o.own==='borrowed'){o.status='read';o.year=+F('year').value||'';o.page=0;o.min=0}
  o.elink=fm.includes('ebook')?cleanUrl(F('elink').value):'';o.alink=fm.includes('audiobook')?cleanUrl(F('alink').value):'';
  const prevB=editId&&S.books.find(x=>x.id===editId),thisY=new Date().getFullYear();
  o.fin=o.status==='read'?F('fin').value:'';
- if(o.status==='read'&&!o.fin&&(!prevB||prevB.status!=='read')&&(!o.year||o.year===thisY))o.fin=today();
+ if(o.status==='read'&&!o.fin&&!o.year&&(!prevB||prevB.status!=='read'))o.fin=today();
  if(o.fin)o.year=+o.fin.slice(0,4);
  if(o.status==='read'&&!o.year)o.year=thisY;
  if(editId){Object.assign(S.books.find(x=>x.id===editId),o,{sample:false})}else{S.books.push(Object.assign({id:uid()},o));if(revId){S.review=S.review.filter(r=>r.id!==revId);revId=null}}
@@ -1393,7 +1404,7 @@ function vReview(){const rows=S.books.map(b=>({b,m:missOf(b)})).filter(x=>missAn
  <div class="panel"><h2>Missing information <span class="meta">(${rows.length})</span></h2>${rows.length?`<p class="note" style="margin:0 0 10px">✕ marks what’s missing. “Update” means the book has a genre that isn’t in your list. Tap a title to fix it.</p><div class="mi-w"><table class="mi"><thead><tr><th scope="col">Book</th><th scope="col">Length</th><th scope="col">Author</th><th scope="col">Summary</th><th scope="col">Genre</th><th scope="col">Cover</th></tr></thead><tbody>${rows.map(({b,m})=>`<tr><th scope="row"><button class="mi-t" data-fix="${b.id}">${esc(b.title)}</button></th><td>${m.len.length?no(m.len.join('<br>'))+(typeof findLen==='function'&&m.len.includes('Audio')?` <button class="mi-f" data-flen="${b.id}">Find</button>`:''):ok}</td><td>${m.author?no('<span aria-hidden="true">✕</span><span class="sr">Missing</span>'):ok}</td><td>${m.sum?no('<span aria-hidden="true">✕</span><span class="sr">Missing</span>'):ok}</td><td>${m.genre==='none'?no('<span aria-hidden="true">✕</span><span class="sr">Missing</span>'):m.genre==='off'?no('Update'):ok}</td><td>${m.cover?no('<span aria-hidden="true">✕</span><span class="sr">Missing</span>'):ok}</td></tr>`).join('')}</tbody></table></div>`:'<div class="meta">Every book has its length, author, summary, cover and a genre from your list.</div>'}</div>`}
 function streams(){
  const big=[],sm=[],ord={tape:0,phone:1},gk=(a,b)=>mainG(a.b).localeCompare(mainG(b.b));
- const cm=[];S.books.filter(b=>!collOf(b)).forEach(b=>pieces(b).forEach(p=>(p.kind==='book'?big:p.kind==='comic'?cm:sm).push(p)));
+ const cm=[];S.books.filter(b=>!collOf(b)&&!lent(b)).forEach(b=>pieces(b).forEach(p=>(p.kind==='book'?big:p.kind==='comic'?cm:sm).push(p)));
  big.sort((a,b)=>ak(a.b).localeCompare(ak(b.b)));
  sm.sort((a,b)=>ord[a.kind]-ord[b.kind]||ak(a.b).localeCompare(ak(b.b)));
  cm.sort((a,b)=>ak(a.b).localeCompare(ak(b.b)));
@@ -1424,7 +1435,7 @@ function ozStair(its,r){const pu=800/OZ_UN;let x=r.x1+r.o*pu,prev=null;
 function ozShelf(items,W){const rows=ozRows(),H=Math.round(W*OZ_R),px=(W/OZ_UN).toFixed(3);
  return ozFlow(items).map(sc=>`<div class="oz" role="group" aria-label="Emerald sculpture shelf" style="--u:${px}px;width:${W}px;height:${H}px">${sc.map((its,ri)=>{const r=rows[ri];return its.length?`<div class="vr${ri?'':' l'}" style="left:${r.x}%;top:${r.y}%;width:calc(var(--u)*${r.len.toFixed(2)});transform:rotate(${r.ang.toFixed(1)}deg)"><div class="vi" style="${r.end?`right:calc(var(--u)*${r.e})`:`left:calc(var(--u)*${r.o})`}">${r.stair?ozStair(its,r):its.map(i=>r.lean?`<div class="ozl" style="rotate:${r.lean}deg">${i.html(r.h)}</div>`:i.html(r.h)).join('')}</div></div>`:''}).join('')}<div class="oz-fg"></div></div>`).join('')}
 function collShelf(name,W){
- const bs=S.books.filter(b=>collOf(b)===name).sort((a,b)=>ak(a).localeCompare(ak(b)));if(!bs.length)return '';
+ const bs=S.books.filter(b=>collOf(b)===name&&!lent(b)).sort((a,b)=>ak(a).localeCompare(ak(b)));if(!bs.length)return '';
  const ps=[];bs.forEach(b=>{const f=allFmts(b);if(f.includes('hardcover'))ps.push({b,kind:'book',hard:true});if(f.includes('paperback'))ps.push({b,kind:'book',hard:false});if(f.includes('audiobook'))ps.push({b,kind:'tape'});if(f.includes('ebook'))ps.push({b,kind:'phone'})});
  if(!ps.length)return '';
  const nc0=bs.reduce((a,b)=>a+copies(b).length,0);if(isOz(name))return `<section aria-label="${esc(name)} collection shelf"><h2 class="coll-h">${esc(name)}</h2><p class="note coll-n">${bs.length} ${bs.length===1?'book':'books'}, ${nc0} ${nc0===1?'copy':'copies'}. One spine for each book in each format you own.</p><div class="bcw">${ozShelf(mk(ps),W)}</div></section>`;
@@ -1445,7 +1456,7 @@ function vShelf(){
    cbs+=`<div class="cb" style="left:${c[0]}%;width:${c[1]}%;top:${c[2]}%;height:${c[3]}%">${[...L,...hh.slice(0,sp),...M,...hh.slice(sp),...R].join('')}</div>`});
   cases+=`<div class="bc" style="--u:${px}px;width:${W}px;height:${H}px">${cbs}</div>`}
  const RW=Math.round(Math.max(170,Math.min(340,($('#app').clientWidth||400)-40,(innerHeight-120)/RACK_R))),rkHtml=Array.from({length:Math.ceil(cm.length/(RACK_FRONT+RACK_SIDE))},(_,k)=>rackHtml(cm.slice(k*(RACK_FRONT+RACK_SIDE),(k+1)*(RACK_FRONT+RACK_SIDE)),RW,k)).join('');
- const byG=(a,b)=>ak(a).localeCompare(ak(b)),auds=S.books.filter(b=>!collOf(b)&&b.formats.includes('audiobook')).sort(byG),ebs=S.books.filter(b=>!collOf(b)&&b.formats.includes('ebook'));
+ const byG=(a,b)=>ak(a).localeCompare(ak(b)),auds=S.books.filter(b=>!collOf(b)&&!lent(b)&&b.formats.includes('audiobook')).sort(byG),ebs=S.books.filter(b=>!collOf(b)&&!lent(b)&&b.formats.includes('ebook'));
  const stHtml=stands.map(st=>`<div class="vs" role="group" aria-label="Audiobooks and ebooks" style="--u:${su}px;width:${SW}px;height:${SH}px">${st.map((items,ri)=>{const r=rows[ri];if(r.stack)return stackHtml(items,ri);return items.length?`<div class="vr" style="left:${r.x}%;top:${r.y}%;width:calc(var(--u)*${r.len.toFixed(2)});transform:rotate(${r.ang.toFixed(1)}deg)"><div class="vi" style="${r.end?`right:calc(var(--u)*${r.e});flex-direction:row-reverse`:`left:calc(var(--u)*${r.o})`}${r.flat&&!r.stack?';transform:translateY(50%)':''}">${r.stack?`<div class="sk" style="margin-left:calc(var(--u)*${((r.len-4.8)/2).toFixed(2)})">${items.slice(0,4).map(i=>i.html(11,true)).join('')}${items.length>4?`<div class="sk2">${items.slice(4).map(i=>i.html(11,true)).join('')}</div>`:''}</div>`:items.map(i=>i.html(11,r.flat)).join('')}</div></div>`:''}).join('')}<div class="vs-fg"></div></div>`).join('');
  $('#app').innerHTML=`<div class="bar"><label class="pri" style="flex:1 1 140px;text-align:center;cursor:pointer;border-radius:999px;padding:6px 14px;background:var(--accent);color:var(--on);font-size:15px">Add a picture frame<input id="tfile" type="file" accept="image/*" class="hide"></label></div>
  <div class="bcw">${cases}${auds.length?ctHtml(auds,CW):''}${ebs.length?tvHtml(ebs,TW):''}${rkHtml}</div>${colls().map(c=>collShelf(c,W)).join('')}
@@ -1473,7 +1484,8 @@ document.addEventListener('click',e=>{
  if(x=g('[data-cal]')){const v=x.dataset.cal;if(v==='back'){view='today';render();scrollTo(0,0);return}if(v!=='open'){CALD=v;CALM=v.slice(0,7)}else{CALD=today();CALM=CALD.slice(0,7)}view='cal';render();scrollTo(0,0);return}
  if(x=g('[data-cd]')){CALD=x.dataset.cd;vCal();return}
  if(x=g('[data-cm]')){const[y,m]=CALM.split('-').map(Number),d=new Date(y,m-1+(+x.dataset.cm),1);CALM=d.toLocaleDateString('en-CA').slice(0,7);vCal();return}
- if(x=g('[data-rp]')){RP=x.dataset.rp;vToday();return}
+ if(x=g('[data-rp]')){RP=x.dataset.rp;render();return}
+ if(x=g('[data-rd]')){view=x.dataset.rd==='back'?'today':'read';render();scrollTo(0,0);return}
  if(x=g('[data-gq]')){filt.q=filt.q.toLowerCase()===x.dataset.gq.toLowerCase()?'':x.dataset.gq;vLib();return}
  if(x=g('[data-ede]')){openEd(x.dataset.ede);return}
  if(x=g('[data-lv]')){LV=x.dataset.lv;try{localStorage.setItem('bs-lv',LV)}catch(e){}vLib();return}
