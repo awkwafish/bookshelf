@@ -372,7 +372,7 @@ body.has-apb main{padding-bottom:110px}body.has-apb #toast{bottom:calc(84px + en
 <div class="row"><label id="r_pages">Page count<input id="f_pages" type="number" min="0"></label>
 <label id="r_len">Audio length (hours)<input id="f_h" type="number" min="0"></label><label id="r_len2">minutes<input id="f_m" type="number" min="0" max="59"></label></div>
 <div class="row"><label>Reading status<select id="f_status"><option value="backlog">To read</option><option value="reading">Reading now</option><option value="read">Read</option></select></label>
-<label id="r_year">Year read<input id="f_year" type="number" min="1900" max="2100"></label><label id="r_fin">Date finished<input id="f_fin" type="date"></label></div>
+<label id="r_year">Year read<input id="f_year" type="number" min="1900" max="2100"></label><label id="r_mon">Month read<select id="f_mon"><option value="">Not sure</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></label><label id="r_fin">Date finished<input id="f_fin" type="date"></label></div>
 <div class="row" id="r_prog"><label>Now on page<input id="f_page" type="number" min="0"></label><label>Minutes listened so far<input id="f_min" type="number" min="0"></label></div>
 <div class="row"><label id="r_elink">Ebook link<input id="f_elink" type="url" inputmode="url" autocapitalize="off" placeholder="Paste the book’s link, e.g. from Bookshop.org"></label><label id="r_alink">Audiobook link<input id="f_alink" type="url" inputmode="url" autocapitalize="off" placeholder="Paste the book’s link, e.g. from Libro.fm"></label></div>
 <label>Summary<textarea id="f_sum" rows="3"></textarea></label>
@@ -498,7 +498,7 @@ function grSync(){const u=grUrl(F('isbn').value),a=$('#f_gr');a.classList.toggle
 const GC=['#666E40','#DD9A7A','#364062','#F8DD94','#3C100E'];
 let RP='month',RLOPEN=true;try{RLOPEN=localStorage.getItem('bs-rl')!=='0'}catch(e){}
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const fmDay=d=>d?MON[+d.slice(5,7)-1]+' '+(+d.slice(8,10))+(d.slice(0,4)===String(new Date().getFullYear())?'':', '+d.slice(0,4)):'';
+const fmDay=d=>d?MON[+d.slice(5,7)-1]+(d.length<10?'':' '+(+d.slice(8,10)))+(d.slice(0,4)===String(new Date().getFullYear())?'':(d.length<10?' ':', ')+d.slice(0,4)):'';
 function readList(list){
  const srt=[...list].sort((a,b)=>(b.fin||'').localeCompare(a.fin||'')||(+b.year||0)-(+a.year||0)||ak(a).localeCompare(ak(b)));
  return `<details class="rl" ${RLOPEN?'open':''}><summary><h3 class="gb-h" style="margin:0">The ${srt.length===1?'book':srt.length+' books'}</h3></summary><ul>${srt.map(b=>{const cv=RFS(b.cover);
@@ -616,7 +616,7 @@ function syncForm(){gpRender();
  const bor=F('own').value==='borrowed';$('#r_from').classList.toggle('hide',!bor);if(bor)F('status').value='read';F('status').disabled=bor;$('#f_bnote').classList.toggle('hide',!bor);
  $('#r_pages').classList.toggle('hide',!fm.some(x=>x!=='audiobook'));
  $('#r_len').classList.toggle('hide',!fm.includes('audiobook'));$('#r_alink').classList.toggle('hide',!fm.includes('audiobook'));$('#r_elink').classList.toggle('hide',!fm.includes('ebook'));$('#r_len2').classList.toggle('hide',!fm.includes('audiobook'));
- const st=F('status').value;$('#r_year').classList.toggle('hide',st!=='read');$('#r_fin').classList.toggle('hide',st!=='read');$('#r_prog').classList.toggle('hide',st!=='reading')
+ const st=F('status').value;$('#r_year').classList.toggle('hide',st!=='read');$('#r_fin').classList.toggle('hide',st!=='read');$('#r_mon').classList.toggle('hide',st!=='read');$('#r_prog').classList.toggle('hide',st!=='reading')
 }
 /* ---------- OneDrive sync ---------- */
 const sk=b=>(b.series||b.title)+'|'+String(b.sno||0).padStart(4,'0')+'|'+b.title;
@@ -895,7 +895,7 @@ function openBook(id,draft){
  revId=draft?draft.id:null;editId=draft?null:(id||null);const b=(draft&&Object.assign({title:'',author:'',genres:[],formats:[],own:'own',from:'',pages:'',mins:0,status:'backlog',year:'',summary:'',page:'',min:''},draft))||S.books.find(x=>x.id===id)||{title:'',author:'',genres:[],formats:[],own:'own',from:'',pages:'',mins:0,status:'backlog',year:'',summary:'',page:'',min:''};
  $('#bt').textContent=id?'Edit book':'Add a book';
  F('title').value=b.title;$('#f_lmsg').textContent='';F('elink').value=b.elink||'';F('alink').value=b.alink||'';F('author').value=b.author;F('genres').value=b.genres.join(', ');F('own').value=b.own;F('from').value=b.from;F('pages').value=b.pages||'';
- F('h').value=b.mins?Math.floor(b.mins/60):'';F('m').value=b.mins?b.mins%60:'';F('status').value=b.status;F('year').value=b.year||'';F('fin').value=b.fin||'';F('page').value=b.page||'';F('min').value=b.min||'';F('sum').value=b.summary;
+ F('h').value=b.mins?Math.floor(b.mins/60):'';F('m').value=b.mins?b.mins%60:'';F('status').value=b.status;F('year').value=b.year||'';F('fin').value=b.fin&&b.fin.length===10?b.fin:'';F('mon').value=b.fin?b.fin.slice(5,7):'';F('page').value=b.page||'';F('min').value=b.min||'';F('sum').value=b.summary;
  F('series').value=b.series||'';F('isbn').value=b.isbn||'';grSync();F('sno').value=b.sno||'';F('cov').value='';F('spn').value='';F('usesp').checked=!!b.useSpine;pend={cov:b.cover||'',sp:b.spine||''};imgNote();
  {const e=b.ed||{};cSel(b.coll||'');F('pub').value=e.pub||'';F('pyr').value=e.yr||'';F('ill').value=e.ill||'';F('cond').value=e.cond||'';F('src').value=e.src||'';F('acq').value=e.acq||'';F('ednote').value=e.notes||'';$('#f_edx').open=Object.values(e).some(Boolean)||!!b.coll;collLists()}
  $('#f_seqof').innerHTML='<option value="">Not a sequel</option>'+S.books.filter(x=>x.id!==id).sort((a,c)=>a.title.localeCompare(c.title)).map(x=>`<option value="${x.id}" ${x.id===b.sequelOf?'selected':''}>${esc(x.title)}</option>`).join('');
@@ -913,6 +913,7 @@ function saveBook(){
  o.elink=fm.includes('ebook')?cleanUrl(F('elink').value):'';o.alink=fm.includes('audiobook')?cleanUrl(F('alink').value):'';
  const prevB=editId&&S.books.find(x=>x.id===editId),thisY=new Date().getFullYear();
  o.fin=o.status==='read'?F('fin').value:'';
+ if(o.status==='read'&&!o.fin&&F('mon').value){const n=new Date(),mo=F('mon').value;let y=+F('year').value||n.getFullYear();if(!+F('year').value&&+mo>n.getMonth()+1)y--;o.fin=y+'-'+mo}
  if(o.status==='read'&&!o.fin&&!o.year&&(!prevB||prevB.status!=='read'))o.fin=today();
  if(o.fin)o.year=+o.fin.slice(0,4);
  if(o.status==='read'&&!o.year)o.year=thisY;
@@ -1532,7 +1533,7 @@ document.addEventListener('click',e=>{
  }
 });
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.card,.frm')){e.preventDefault();e.target.click()}});
-['f_own','f_status'].forEach(i=>$('#'+i).onchange=syncForm);$('#f_fin').onchange=e=>{if(e.target.value)F('year').value=e.target.value.slice(0,4)};$('#f_fmts').onchange=syncForm;
+['f_own','f_status'].forEach(i=>$('#'+i).onchange=syncForm);$('#f_fin').onchange=e=>{if(e.target.value){F('year').value=e.target.value.slice(0,4);F('mon').value=e.target.value.slice(5,7)}};$('#f_fmts').onchange=syncForm;
 F('cov').onchange=async e=>{const f=e.target.files[0];if(!f)return;toast('Adding photo…');try{pend.cov=await up(f,500);imgNote()}catch(x){toast('That image could not be read.')}};
 F('spn').onchange=async e=>{const f=e.target.files[0];if(!f)return;toast('Adding photo…');try{pend.sp=await up(f,420);F('usesp').checked=true;imgNote()}catch(x){toast('That image could not be read.')}};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&acct)pull()});addEventListener('online',()=>{if(acct)pull()});if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});norm();apInit();loadImgs().then(render);od();
