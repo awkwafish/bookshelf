@@ -129,9 +129,9 @@ label{display:block;font-size:13px;color:var(--muted)}label input,label select,l
 .cx-r{position:absolute;right:4px;top:-1px;width:6px;height:60%;background:#F8DD94;border:1px solid #1b1420;border-top:0}
 .cx-e{border-radius:3px;background:rgba(0,0,0,.25);box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
 .ct-star{position:absolute;pointer-events:none;height:auto}
-.ct-top{position:absolute;left:3%;right:3%;bottom:calc(100% + 2px);display:flex;flex-wrap:wrap-reverse;justify-content:center;align-items:flex-end;gap:8px 6px;z-index:2}
-.cxf{position:relative;flex:none;padding:0;border:2px solid #1b1420;border-radius:5px;background:linear-gradient(135deg,rgba(255,255,255,.8),rgba(205,215,220,.8));box-shadow:3px 4px 0 rgba(0,0,0,.28);overflow:hidden;cursor:pointer;transform:rotate(-2deg)}
-.cxf:nth-child(even){transform:rotate(2deg)}
+.ct-top{position:absolute;left:0;right:0;bottom:calc(100% + 2px);z-index:2;pointer-events:none}
+.cxp{position:absolute;pointer-events:none}.cxr{position:absolute;left:50%;top:50%;pointer-events:auto}
+.cxf{position:relative;flex:none;padding:0;border:2px solid #1b1420;border-radius:5px;background:linear-gradient(135deg,rgba(255,255,255,.8),rgba(205,215,220,.8));box-shadow:3px 4px 0 rgba(0,0,0,.28);overflow:hidden;cursor:pointer}
 .cxf::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.38) 38%,transparent 46%);pointer-events:none}
 .cxf-h{position:absolute;left:0;top:0;bottom:0;width:8px;background:rgba(255,255,255,.6);border-right:1.5px solid #1b1420}
 .cxf-c{position:absolute;left:calc(50% + 4px);top:50%;transform:translate(-50%,-50%) rotate(-90deg);border:1.5px solid #1b1420;display:flex;flex-direction:column;justify-content:space-between;padding:6px;color:#F0E1BE;text-align:left;overflow:hidden;background-image:linear-gradient(90deg,rgba(255,255,255,.18) 0 10%,transparent 10%)}
@@ -753,11 +753,19 @@ function ctHtml(list,CW){
  return out.join('')}
 function cxFront(b,W,H){const cv=RFS(b.cover),rib=b.status==='reading'?'<i class="cx-r"></i>':'';
  return `<button class="cxf" data-edit="${b.id}" title="${esc(b.title)} by ${esc(b.author)} (audiobook)" style="width:${W}px;height:${H}px"><i class="cxf-h"></i><span class="cxf-c" style="width:${H-10}px;height:${W-18}px;${cv?`background:#2a2430 url('${cv}') center/cover`:`background-color:${col(b)}`}">${cv?'':`<b>${esc(b.title)}</b><small>${esc(b.author||'')}</small>`}</span>${rib}</button>`}
+function ctRnd(s){let h=2166136261;for(const c of String(s))h=Math.imul(h^c.charCodeAt(0),16777619);return()=>{h=Math.imul(h^h>>>15,2246822507);h=Math.imul(h^h>>>13,3266489909);h^=h>>>16;return(h>>>0)/4294967296}}
 function ctPromote(){document.querySelectorAll('.ct').forEach(ct=>{const over=[...ct.querySelectorAll('.cx')].filter(x=>{const s=x.querySelector('span');return s&&txOver(s)});if(!over.length)return;
- const cw=+ct.dataset.cw||100,W=Math.round(Math.max(92,Math.min(cw*1.05,160))),H=Math.round(W*.64);
+ const RW=ct.offsetWidth,W=Math.round(Math.max(78,Math.min(RW*.94/3*.98,150))),H=Math.round(W*.64),IN=Math.round(RW*.03),AV=RW-2*IN;
  let top=ct.querySelector('.ct-top');if(!top){top=document.createElement('div');top.className='ct-top';ct.appendChild(top)}
- over.forEach(x=>{const b=S.books.find(y=>y.id===x.dataset.edit);if(!b)return;const c=x.parentElement;x.remove();c.insertAdjacentHTML('beforeend','<i class="cx-e"></i>');top.insertAdjacentHTML('beforeend',cxFront(b,W,H))});
- ct.style.marginTop=(top.offsetHeight+6)+'px'})}
+ const its=[];over.forEach(x=>{const b=S.books.find(y=>y.id===x.dataset.edit);if(!b)return;const c=x.parentElement;x.remove();c.insertAdjacentHTML('beforeend','<i class="cx-e"></i>');
+  const r=ctRnd(b.id),up=r()<.4;its.push({b,up,fw:up?H:W,fh:up?W:H,ang:(up?90:0)+(r()-.5)*(up?7:6)})});
+ const rows=[];let row=[],rw=0;its.forEach(it=>{if(row.length&&rw+it.fw>AV){rows.push(row);row=[];rw=0}row.push(it);rw+=it.fw});if(row.length)rows.push(row);
+ const sky=new Array(RW+1).fill(0);let html='',z=0,th=0;
+ rows.forEach((rw_,ri)=>{const tot=rw_.reduce((a,it)=>a+it.fw,0);let x=IN+Math.round((AV-tot)/2)+(ri%2?Math.round(W*.18):0);x=Math.max(0,Math.min(RW-tot,x));
+  rw_.forEach(it=>{const x0=Math.round(x),x1=Math.min(RW,x0+it.fw);let bot=0;for(let k=x0;k<x1;k++)bot=Math.max(bot,sky[k]);bot=bot?bot-1:0;
+   for(let k=x0;k<x1;k++)sky[k]=bot+it.fh;th=Math.max(th,bot+it.fh);
+   html+=`<div class="cxp" style="left:${x0}px;bottom:${bot}px;width:${it.fw}px;height:${it.fh}px;z-index:${++z}"><div class="cxr" style="transform:translate(-50%,-50%) rotate(${it.ang.toFixed(1)}deg)">${cxFront(it.b,W,H)}</div></div>`;x+=it.fw})});
+ top.innerHTML=html;top.style.height=th+'px';ct.style.marginTop=(th+10)+'px'})}
 /* ---------- CRT TV channel guide (ebooks) ---------- */
 const clk=()=>new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 setInterval(()=>document.querySelectorAll('.tv-clock').forEach(e=>e.textContent=clk()),30000);
@@ -1121,8 +1129,24 @@ async function audible(title,author){if(!String(title||'').trim())return null;
  const j=await fj('https://api.audible.com/1.0/catalog/products?num_results=10&products_sort_by=Relevance&keywords='+encodeURIComponent((normT(title)+' '+(author?lastName(author):'')).trim())+'&response_groups=product_attrs,contributors,media');
  const hit=((j&&j.products)||[]).find(p=>p.runtime_length_min>0&&sameBook(p.title,title)&&(!author||(p.authors||[]).some(a=>String(a.name||'').toLowerCase().includes(lastName(author)))));
  return hit?{mins:Math.round(hit.runtime_length_min)}:null}
+async function mp4Dur(u,size){const ac=new AbortController();
+ const rg=async(a,b)=>{const r=await fetch(u,{headers:{Range:`bytes=${a}-${b}`},signal:ac.signal});if(r.status!==206){ac.abort();throw new Error('norange')}return new DataView(await r.arrayBuffer())};
+ const ty=(v,o)=>String.fromCharCode(v.getUint8(o),v.getUint8(o+1),v.getUint8(o+2),v.getUint8(o+3));
+ try{let off=0;for(let n=0;n<60&&off+8<=size;n++){const h=await rg(off,Math.min(size-1,off+15));let sz=h.getUint32(0),hl=8;const tp=ty(h,4);
+   if(sz===1){sz=h.getUint32(8)*4294967296+h.getUint32(12);hl=16}else if(sz===0)sz=size-off;if(sz<hl)return 0;
+   if(tp==='moov'){const m=await rg(off+hl,off+Math.min(sz,hl+262144)-1);let q=0;
+    while(q+8<=m.byteLength){const bs=m.getUint32(q);if(ty(m,q+4)==='mvhd'){const v1=m.getUint8(q+8)===1,ts=m.getUint32(q+(v1?28:20)),du=v1?m.getUint32(q+32)*4294967296+m.getUint32(q+36):m.getUint32(q+24);return ts?du/ts:0}if(bs<8)break;q+=bs}return 0}
+   off+=sz}}catch(e){}return 0}
+function probeDur(u){return new Promise(ok=>{const a=document.createElement('audio');let done=false;
+ const fin=v=>{if(done)return;done=true;clearTimeout(tm);a.removeAttribute('src');try{a.load()}catch(e){}ok(v)},tm=setTimeout(()=>fin(0),30000);
+ a.preload='metadata';a.muted=true;a.addEventListener('loadedmetadata',()=>fin(isFinite(a.duration)&&a.duration>0?a.duration:0));a.addEventListener('error',()=>fin(0));a.src=u;try{a.load()}catch(e){}})}
+async function fileSecs(x){if(x.audio&&x.audio.duration)return x.audio.duration/1000;
+ const j=await gj('/me/drive/items/'+x.id+'?$select=id,size,@microsoft.graph.downloadUrl');const u=j&&j['@microsoft.graph.downloadUrl'];if(!u)return 0;
+ let s=/\.(m4a|m4b|mp4|aac)$/i.test(x.name)?await mp4Dur(u,+x.size||+j.size||0):0;if(!s)s=await probeDur(u);return s}
 async function odLen(b){if(!b.audio||!acct)return 0;try{let its;if(b.audio.kind==='folder')its=((await kids(b.audio.id))||[]).filter(isAud);else{const j=await gj('/me/drive/items/'+b.audio.id+'?$select=id,name,size,file,audio');its=j?[j]:[]}
-  return its.length&&its.every(x=>x.audio&&x.audio.duration)?Math.round(its.reduce((a,x)=>a+x.audio.duration,0)/60000):0}catch(e){return 0}}
+  if(!its.length)return 0;let sec=0;
+  for(let i=0;i<its.length;i+=4){const part=await Promise.all(its.slice(i,i+4).map(fileSecs));if(part.some(v=>!v))return 0;sec+=part.reduce((a,v)=>a+v,0)}
+  return Math.round(sec/60)}catch(e){return 0}}
 async function findLen(id){const b=S.books.find(x=>x.id===id);if(!b)return;toast('Looking for the audio length…');let m=await odLen(b),src='your OneDrive files';
  if(!m){const a=await audible(b.title,b.author);if(a){m=a.mins;src='Audible’s catalog'}}
  const cur=S.books.find(x=>x.id===id);if(!cur)return;if(m){cur.mins=m;save();render();toast(`Set “${cur.title}” to ${fmM(m)}, from ${src}.`)}else toast('No length found. Enter it by hand: tap the title, then fill in Audio length.')}
