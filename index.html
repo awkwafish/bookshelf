@@ -352,8 +352,8 @@ body.has-apb main{padding-bottom:110px}body.has-apb #toast{bottom:calc(84px + en
 <label>Title<input id="f_title"></label>
 <label>Author<input id="f_author"></label>
 <div class="gp"><div id="f_gp"></div><input id="f_genres" type="hidden"></div>
-<div class="row"><label>Set or series<input id="f_series" list="sl" placeholder="Name of the set"></label><label>Number in the set<input id="f_sno" type="number" min="1"></label></div>
-<datalist id="sl"></datalist>
+<div class="row"><label>Set or series<select id="f_ssel"></select></label><label>Number in the set<input id="f_sno" type="number" min="1"></label></div>
+<label id="r_snew">New series name<input id="f_series" placeholder="Leave blank if not in a series"></label>
 <label>This book is a sequel to<select id="f_seqof"></select></label>
 <div class="row"><label>Collection<select id="f_csel"></select></label><label id="r_cnew" class="hide">New collection name<input id="f_coll" placeholder="e.g. Wizard of Oz"></label></div>
 <datalist id="cl"></datalist><datalist id="il"></datalist>
@@ -899,6 +899,19 @@ const imgOK=u=>new Promise(ok=>{const i=new Image(),t=setTimeout(()=>ok(false),9
 async function coverFrom(u){
  try{const r=await fetch(u,{mode:'cors'});if(r.ok){const b=await r.blob();if(/^image\//.test(b.type)&&b.size>1500)return await up(b,600)}}catch(e){}
  return(await imgOK(u))?u:null}
+/* series dropdown: "New series" first, then every series already used, A to Z; the sequel list shows only that series */
+function serNames(){const m=new Map();S.books.forEach(x=>{const s=(x.series||'').trim();if(s&&!m.has(s.toLowerCase()))m.set(s.toLowerCase(),s)});return[...m.values()].sort((a,c)=>a.localeCompare(c,undefined,{sensitivity:'base'}))}
+function serPick(cur){cur=String(cur||'').trim();const ns=serNames(),hit=ns.find(s=>s.toLowerCase()===cur.toLowerCase());
+ $('#f_ssel').innerHTML='<option value="\u0001new">New series</option>'+ns.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+ $('#f_ssel').value=hit||'\u0001new';F('series').value=hit||cur;$('#r_snew').classList.toggle('hide',!!hit)}
+function seqOpts(keep,out){const ser=F('series').value.trim().toLowerCase(),id=editId;
+ const list=ser?S.books.filter(x=>x.id!==id&&(x.series||'').trim().toLowerCase()===ser).sort((a,c)=>(+a.sno||999)-(+c.sno||999)||a.title.localeCompare(c.title)):[];
+ const kb=out&&keep&&!list.some(x=>x.id===keep)?S.books.find(x=>x.id===keep):null;if(kb)list.push(kb);
+ $('#f_seqof').innerHTML='<option value="">'+(ser?'Not a sequel':'Not a sequel (pick a series first)')+'</option>'+list.map(x=>`<option value="${x.id}">${x.sno&&(x.series||'').trim().toLowerCase()===ser?'#'+esc(String(x.sno))+' ':''}${esc(x.title)}</option>`).join('');
+ $('#f_seqof').value=list.some(x=>x.id===keep)?keep:''}
+document.addEventListener('change',e=>{if(e.target.id!=='f_ssel')return;const nw=e.target.value==='\u0001new';$('#r_snew').classList.toggle('hide',!nw);
+ F('series').value=nw?'':e.target.value;seqOpts(F('seqof').value);if(nw)F('series').focus()});
+document.addEventListener('input',e=>{if(e.target.id==='f_series')seqOpts(F('seqof').value)});
 function openBook(id,draft){
  revId=draft?draft.id:null;editId=draft?null:(id||null);const b=(draft&&Object.assign({title:'',author:'',genres:[],formats:[],own:'own',from:'',pages:'',mins:0,status:'backlog',year:'',summary:'',page:'',min:''},draft))||S.books.find(x=>x.id===id)||{title:'',author:'',genres:[],formats:[],own:'own',from:'',pages:'',mins:0,status:'backlog',year:'',summary:'',page:'',min:''};
  $('#bt').textContent=id?'Edit book':'Add a book';
@@ -906,8 +919,7 @@ function openBook(id,draft){
  F('h').value=b.mins?Math.floor(b.mins/60):'';F('m').value=b.mins?b.mins%60:'';F('status').value=b.status;F('year').value=b.year||'';F('fin').value=b.fin&&b.fin.length===10?b.fin:'';F('mon').value=b.fin?b.fin.slice(5,7):'';F('page').value=b.page||'';F('min').value=b.min||'';F('sum').value=b.summary;
  F('series').value=b.series||'';F('isbn').value=b.isbn||'';grSync();F('sno').value=b.sno||'';F('cov').value='';F('spn').value='';F('usesp').checked=!!b.useSpine;pend={cov:b.cover||'',sp:b.spine||''};imgNote();
  {const e=b.ed||{};cSel(b.coll||'');F('pub').value=e.pub||'';F('pyr').value=e.yr||'';F('ill').value=e.ill||'';F('cond').value=e.cond||'';F('src').value=e.src||'';F('acq').value=e.acq||'';F('ednote').value=e.notes||'';$('#f_edx').open=Object.values(e).some(Boolean)||!!b.coll;collLists()}
- $('#f_seqof').innerHTML='<option value="">Not a sequel</option>'+S.books.filter(x=>x.id!==id).sort((a,c)=>a.title.localeCompare(c.title)).map(x=>`<option value="${x.id}" ${x.id===b.sequelOf?'selected':''}>${esc(x.title)}</option>`).join('');
- $('#sl').innerHTML=[...new Set(S.books.map(x=>x.series).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join('');
+ serPick(b.series||'');seqOpts(b.sequelOf||'',true);
  document.querySelectorAll('#f_fmts input').forEach(i=>i.checked=b.formats.includes(i.value));
  $('#f_del').classList.toggle('hide',!id);$('#f_del').textContent='Delete';syncForm();$('#bd').showModal()
 }
@@ -1159,7 +1171,7 @@ async function lookup(){
  if(!r.found)return lsay('No match found for '+isbn+'. Audiobook ISBNs are often missing from the lookup services, so try the print or ebook ISBN, or fill the details in by hand.'+(r.busy?' Google Books was busy, so try Look up again in a minute.':''));
  const filled=[],set=(id,v,label)=>{if(v&&!String(F(id).value).trim()){F(id).value=v;filled.push(label)}};
  set('title',r.title,'title');set('author',r.author,'author');set('pages',r.pages||'','page count');set('genres',r.genres.join(', '),'genre');
- if(r.series&&r.series.name){if(!F('series').value.trim()){F('series').value=r.series.name;filled.push('series')}
+ if(r.series&&r.series.name){if(!F('series').value.trim()){serPick(r.series.name);seqOpts(F('seqof').value);filled.push('series')}
   if(r.series.num&&!F('sno').value){F('sno').value=r.series.num;filled.push('number in series')}
   const n=+F('sno').value;if(n>1&&!F('seqof').value){const prev=S.books.find(b=>b.id!==editId&&(b.series||'').toLowerCase()===F('series').value.trim().toLowerCase()&&+b.sno===n-1);if(prev){F('seqof').value=prev.id;filled.push('sequel to '+prev.title)}}}
  set('sum',r.summary,'summary');
