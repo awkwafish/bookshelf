@@ -787,33 +787,36 @@ function tvHtml(list,TW){
  ${ctStar(97,3,5)}${ctStar(-2,62,4)}</div>`}
 /* ---------- Comic rack ---------- */
 const isComic=b=>(b.genres||[]).some(g=>/graphic|comic|manga|webtoon/i.test(g));
-const RACK_FRONT=8,RACK_SIDE=8,RACK_R=3.4,RK_TOP=165,RK_PITCH=80;
+/* Magazine rack: 4 tiers of 5 face-out pockets (20 comics); more comics start another rack. viewBox 600 x 820 */
+const MG_COLS=5,MG_ROWS=4,MG_N=MG_COLS*MG_ROWS,MG_W=600,MG_H=820,MG_X0=44,MG_PW=102.4,MG_CW=90,MG_CH=130,MG_Y0=124,MG_PITCH=166,MG_LIP=96;
 const rkStar=(x,y,s)=>`<path transform="translate(${x} ${y}) scale(${s})" d="M0-14C2-4 4-2 14 0C4 2 2 4 0 14C-2 4-4 2-14 0C-4-2-2-4 0-14Z" fill="#fff" stroke="#1b1420" stroke-width="2.6" stroke-linejoin="round"/>`;
-function rackBack(id){let rows='';for(let i=0;i<RACK_FRONT;i++){const y=RK_TOP+i*RK_PITCH;rows+=`<path d="M70 ${y+18}H230M232 ${y+44}L288 ${y+16}" stroke="#1b1420" stroke-width="2.4" fill="none" stroke-linecap="round"/>`}
- return `<defs><filter id="wob${id}" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="2.4"/></filter></defs>
- <ellipse cx="150" cy="1001" rx="128" ry="13" fill="rgba(0,0,0,.18)"/>
- <g filter="url(#wob${id})">
- <path d="M70 150V930M230 150V930M288 160V930" stroke="#1b1420" stroke-width="3" fill="none" stroke-linecap="round"/>${rows}
- <rect x="143" y="118" width="14" height="852" rx="3" fill="#2f2935" stroke="#1b1420" stroke-width="3.2"/><path d="M147.5 130V960" stroke="#6d6676" stroke-width="2" stroke-linecap="round"/>
- <path d="M96 152V118M204 152V118M90 152H210M92 118H208" stroke="#1b1420" stroke-width="3.4" fill="none" stroke-linecap="round"/>
- <rect x="38" y="12" width="224" height="104" rx="12" fill="#F0E1BE" stroke="#1b1420" stroke-width="4"/>
- <rect x="38" y="12" width="224" height="20" rx="10" fill="#B0654D" stroke="#1b1420" stroke-width="4"/>
- <text x="150" y="80" text-anchor="middle" font-family="Bangers, 'Arial Black', sans-serif" font-size="46" letter-spacing="2" fill="#DD9A7A" stroke="#1b1420" stroke-width="2.4" paint-order="stroke">COMICS</text>
- <text x="150" y="104" text-anchor="middle" font-family="Figtree, sans-serif" font-weight="600" font-size="15" fill="#382514">and graphic novels</text>
- <ellipse cx="150" cy="976" rx="94" ry="24" fill="#26212b" stroke="#1b1420" stroke-width="4"/>
- <ellipse cx="150" cy="964" rx="94" ry="22" fill="#3d3745" stroke="#1b1420" stroke-width="4"/>
- <path d="M80 960Q150 944 220 960" stroke="rgba(255,255,255,.22)" stroke-width="4" fill="none" stroke-linecap="round"/>
- <ellipse cx="150" cy="958" rx="15" ry="5" fill="#2f2935" stroke="#1b1420" stroke-width="3"/></g>
- ${rkStar(26,30,1.1)}${rkStar(282,150,.8)}${rkStar(24,560,.7)}`}
-function rackWire(y,id){return `<g filter="url(#wob${id})" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M62 ${y+54}Q57 ${y+77} 72 ${y+78}H228Q243 ${y+77} 238 ${y+54}M124 ${y+78}L150 ${y+69}L176 ${y+78}" stroke="#1b1420" stroke-width="3.6"/><path d="M74 ${y+76.5}H226" stroke="#7a7482" stroke-width="1.1"/></g>`}
-function comicCover(b,y){const cv=RFS(b.cover),rib=b.status==='reading'?'<i class="rib"></i>':'';
- return `<button class="ck" data-edit="${b.id}" title="${esc(b.title)} by ${esc(b.author)}" style="top:${(y/10.2).toFixed(3)}%;${cv?`background:#2a2430 url('${cv}') center/cover`:`background-color:${col(b)}`}">${cv?'':`<span class="ck-t" lang="en">${esc(b.title)}</span><span class="ck-a">${esc(b.author)}</span>`}${rib}</button>`}
-function comicSpine(b,y){const rib=b.status==='reading'?'<i class="rib"></i>':'';return `<button class="cks" data-edit="${b.id}" title="${esc(b.title)} by ${esc(b.author)}" style="top:${((y+8)/10.2).toFixed(3)}%;background-color:${col(b)}"><span>${esc(b.title)}</span>${rib}</button>`}
+function mgBack(id){let tiers='';
+ for(let r=0;r<MG_ROWS;r++){const y=MG_Y0+r*MG_PITCH;tiers+=`<path d="M40 ${y+MG_LIP+18}H560" stroke="#382514" stroke-width="10" stroke-linecap="round" opacity=".55"/><path d="M40 ${y-8}H560" stroke="rgba(0,0,0,.18)" stroke-width="3"/>`}
+ return `<defs><filter id="mwob${id}" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="2.4"/></filter>
+ <pattern id="mgrain${id}" width="40" height="12" patternUnits="userSpaceOnUse"><path d="M0 4Q10 2 20 4T40 4M0 10Q12 8 24 10T40 9" stroke="rgba(0,0,0,.12)" stroke-width="1.4" fill="none"/></pattern></defs>
+ <ellipse cx="300" cy="808" rx="270" ry="11" fill="rgba(0,0,0,.18)"/>
+ <g filter="url(#mwob${id})">
+ <rect x="34" y="96" width="532" height="676" rx="6" fill="#5E4536" stroke="#1b1420" stroke-width="4"/>
+ <rect x="34" y="96" width="532" height="676" rx="6" fill="url(#mgrain${id})"/>
+ ${tiers}
+ <path d="M20 92L34 92L34 796L14 800Z" fill="#9A7A62" stroke="#1b1420" stroke-width="4" stroke-linejoin="round"/>
+ <path d="M580 92L566 92L566 796L586 800Z" fill="#9A7A62" stroke="#1b1420" stroke-width="4" stroke-linejoin="round"/>
+ <path d="M10 800H50M550 800H590" stroke="#1b1420" stroke-width="7" stroke-linecap="round"/>
+ <rect x="150" y="6" width="300" height="80" rx="12" fill="#F0E1BE" stroke="#1b1420" stroke-width="4"/>
+ <rect x="150" y="6" width="300" height="18" rx="9" fill="#B0654D" stroke="#1b1420" stroke-width="4"/>
+ <text x="300" y="62" text-anchor="middle" font-family="Bangers, 'Arial Black', sans-serif" font-size="40" letter-spacing="2" fill="#DD9A7A" stroke="#1b1420" stroke-width="2.2" paint-order="stroke">COMICS</text>
+ <text x="300" y="80" text-anchor="middle" font-family="Figtree, sans-serif" font-weight="600" font-size="12" fill="#382514">and graphic novels</text>
+ <path d="M200 86V96M400 86V96" stroke="#1b1420" stroke-width="4" stroke-linecap="round"/></g>
+ ${rkStar(110,40,1)}${rkStar(500,30,.8)}${rkStar(588,420,.6)}`}
+function mgLip(y,id){let div='';for(let c=1;c<MG_COLS;c++){const x=MG_X0+c*MG_PW;div+=`<path d="M${x} ${y+MG_LIP-26}V${y+MG_LIP+4}" stroke="#1b1420" stroke-width="3" stroke-linecap="round"/>`}
+ return `<g filter="url(#mwob${id})"><rect x="30" y="${y+MG_LIP}" width="540" height="34" rx="5" fill="#9A7A62" stroke="#1b1420" stroke-width="4"/><path d="M40 ${y+MG_LIP+9}H560" stroke="rgba(255,255,255,.28)" stroke-width="3" stroke-linecap="round"/>${div}</g>`}
+function comicCover(b,x,y){const cv=RFS(b.cover),rib=b.status==='reading'?'<i class="rib"></i>':'',pc=v=>(v).toFixed(3)+'%';
+ return `<button class="ck" data-edit="${b.id}" title="${esc(b.title)} by ${esc(b.author)}" style="left:${pc(x/MG_W*100)};top:${pc(y/MG_H*100)};width:${pc(MG_CW/MG_W*100)};height:${pc(MG_CH/MG_H*100)};${cv?`background:#2a2430 url('${cv}') center/cover`:`background-color:${col(b)}`}">${cv?'':`<span class="ck-t" lang="en">${esc(b.title)}</span><span class="ck-a">${esc(b.author)}</span>`}${rib}</button>`}
 function rackHtml(items,RW,id){
- const front=items.slice(0,RACK_FRONT),side=items.slice(RACK_FRONT,RACK_FRONT+RACK_SIDE);
- let h=`<div class="rk" role="group" aria-label="Comics and graphic novels" style="--r:${(RW/300).toFixed(4)}px;width:${RW}px;height:${Math.round(RW*RACK_R)}px"><svg class="rk-l" viewBox="0 0 300 1020" aria-hidden="true">${rackBack(id)}</svg>`;
- for(let i=0;i<RACK_FRONT;i++){const y=RK_TOP+i*RK_PITCH;if(front[i])h+=comicCover(front[i].b,y);h+=`<svg class="rk-l" viewBox="0 0 300 1020" aria-hidden="true">${rackWire(y,id)}</svg>`}
- side.forEach((p,i)=>{h+=comicSpine(p.b,RK_TOP+i*RK_PITCH)});
+ let h=`<div class="rk mg" role="group" aria-label="Comics and graphic novels" style="--r:${(RW*MG_CW/MG_W/150).toFixed(4)}px;width:${RW}px;height:${Math.round(RW*MG_H/MG_W)}px"><svg class="rk-l" viewBox="0 0 ${MG_W} ${MG_H}" aria-hidden="true">${mgBack(id)}</svg>`;
+ for(let r=0;r<MG_ROWS;r++){const y=MG_Y0+r*MG_PITCH;
+  for(let c=0;c<MG_COLS;c++){const p=items[r*MG_COLS+c];if(p)h+=comicCover(p.b,MG_X0+c*MG_PW+(MG_PW-MG_CW)/2,y)}
+  h+=`<svg class="rk-l" viewBox="0 0 ${MG_W} ${MG_H}" aria-hidden="true">${mgLip(y,id)}</svg>`}
  return h+'</div>'}
 /* ---------- Bookshelf (frames, sets, photos) ---------- */
 /* ---------- Library and form ---------- */
@@ -1492,12 +1495,12 @@ function vShelf(){
    let acc=0,sp=items.length;for(let i=0;i<items.length;i++){if(acc>=tot/2){sp=i;break}acc+=items[i].w}
    cbs+=`<div class="cb" style="left:${c[0]}%;width:${c[1]}%;top:${c[2]}%;height:${c[3]}%">${[...L,...hh.slice(0,sp),...M,...hh.slice(sp),...R].join('')}</div>`});
   cases+=`<div class="bc" style="--u:${px}px;width:${W}px;height:${H}px">${cbs}</div>`}
- const RW=Math.round(Math.max(170,Math.min(340,($('#app').clientWidth||400)-40,(innerHeight-120)/RACK_R))),rkHtml=Array.from({length:Math.ceil(cm.length/(RACK_FRONT+RACK_SIDE))},(_,k)=>rackHtml(cm.slice(k*(RACK_FRONT+RACK_SIDE),(k+1)*(RACK_FRONT+RACK_SIDE)),RW,k)).join('');
+ const RW=Math.round(Math.max(280,Math.min(560,($('#app').clientWidth||400)-24))),rkHtml=Array.from({length:Math.ceil(cm.length/MG_N)},(_,k)=>rackHtml(cm.slice(k*MG_N,(k+1)*MG_N),RW,k)).join('');
  const byG=(a,b)=>ak(a).localeCompare(ak(b)),auds=S.books.filter(b=>!collOf(b)&&!lent(b)&&b.formats.includes('audiobook')).sort(byG),ebs=S.books.filter(b=>!collOf(b)&&!lent(b)&&b.formats.includes('ebook'));
  const stHtml=stands.map(st=>`<div class="vs" role="group" aria-label="Audiobooks and ebooks" style="--u:${su}px;width:${SW}px;height:${SH}px">${st.map((items,ri)=>{const r=rows[ri];if(r.stack)return stackHtml(items,ri);return items.length?`<div class="vr" style="left:${r.x}%;top:${r.y}%;width:calc(var(--u)*${r.len.toFixed(2)});transform:rotate(${r.ang.toFixed(1)}deg)"><div class="vi" style="${r.end?`right:calc(var(--u)*${r.e});flex-direction:row-reverse`:`left:calc(var(--u)*${r.o})`}${r.flat&&!r.stack?';transform:translateY(50%)':''}">${r.stack?`<div class="sk" style="margin-left:calc(var(--u)*${((r.len-4.8)/2).toFixed(2)})">${items.slice(0,4).map(i=>i.html(11,true)).join('')}${items.length>4?`<div class="sk2">${items.slice(4).map(i=>i.html(11,true)).join('')}</div>`:''}</div>`:items.map(i=>i.html(11,r.flat)).join('')}</div></div>`:''}).join('')}<div class="vs-fg"></div></div>`).join('');
  $('#app').innerHTML=`<div class="bar"><label class="pri" style="flex:1 1 140px;text-align:center;cursor:pointer;border-radius:999px;padding:6px 14px;background:var(--accent);color:var(--on);font-size:15px">Add a picture frame<input id="tfile" type="file" accept="image/*" class="hide"></label></div>
  <div class="bcw">${cases}${auds.length?ctHtml(auds,CW):''}${ebs.length?tvHtml(ebs,TW):''}${rkHtml}</div>${colls().map(c=>collShelf(c,W)).join('')}
- <p class="note">Print books fill the bookcase in alphabetical order. Comics go on the wire rack, audiobooks on the cassette rack and ebooks on the TV. A yellow ribbon marks what you're reading now. Tap a picture frame to move it. Collections get their own shelf below, with one spine per format; Wizard of Oz books go on the emerald sculpture.</p>`;
+ <p class="note">Print books fill the bookcase in alphabetical order. Comics go on the magazine rack, audiobooks on the cassette rack and ebooks on the TV. A yellow ribbon marks what you're reading now. Tap a picture frame to move it. Collections get their own shelf below, with one spine per format; Wizard of Oz books go on the emerald sculpture.</p>`;
  $('#tfile').onchange=addTrinket;fitTitles();ctPromote()
 }
 function txOver(s){try{const r=document.createRange();r.selectNodeContents(s);return r.getBoundingClientRect().width>s.getBoundingClientRect().width+.3}catch(e){return s.scrollWidth>s.clientWidth}}
