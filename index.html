@@ -25,7 +25,9 @@ nav{display:flex;gap:6px;margin-top:10px;align-items:flex-start}
 .acts{display:flex;gap:6px;flex:none;margin-left:auto;justify-content:flex-end}.acts button{white-space:nowrap}
 #nav button[data-tab="player"]{background:#8F4B4B;border-color:#8F4B4B;color:#F9F0DA}
 #nav button[data-tab="player"].on{background:#3C100E;border-color:#3C100E;color:#F9F0DA;box-shadow:0 0 0 2px var(--bg),0 0 0 4px #8F4B4B}
-.sb-o{display:grid;gap:10px}.sb-o button{display:grid;gap:2px;text-align:left;padding:12px 14px;border-radius:12px}.sb-o button small{color:var(--muted);font-weight:400}
+.sb-o{display:grid;gap:10px}
+.mr-list{display:grid;gap:8px;max-height:46vh;overflow:auto}.mr-sec{border:1px solid var(--line,rgba(0,0,0,.15));border-radius:10px;padding:8px 10px}.mr-sec summary{cursor:pointer}.mr-all{display:flex;gap:8px;margin:8px 0}.mr-all button{padding:4px 10px;font-size:13px}.mr-i{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:14px}.mr-i input{width:auto;margin:0}
+.pair{flex:0 0 100%;display:flex;flex-wrap:nowrap;gap:12px;justify-content:center;align-items:flex-end}.sb-o button{display:grid;gap:2px;text-align:left;padding:12px 14px;border-radius:12px}.sb-o button small{color:var(--muted);font-weight:400}
 .am-list label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;min-height:44px;color:var(--ink);font-size:15px}.am-list input{width:auto;margin:3px 0 0;flex:none}.am-list span{min-width:0;overflow-wrap:anywhere}.am-list small{display:block;color:var(--muted)}
 .pv-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 10px}.pv-top h2{margin:0}
 .pv-b{flex:none;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.pv-b button{font-size:14px;padding:6px 12px}
@@ -411,7 +413,8 @@ body.has-apb main{padding-bottom:110px}body.has-apb #toast{bottom:calc(84px + en
 </div></dialog>
 <div id="apb" class="hide" role="region" aria-label="Audiobook player"><i id="apb_bar"></i><button id="apb_open" data-act="apopen" aria-label="Open player"><span id="apb_cv" aria-hidden="true"></span><span class="apb-tx"><b id="apb_t"></b><small id="apb_s"></small></span></button><button id="apb_pp" class="pri" data-act="appp" aria-label="Play"></button><button data-act="apstop" aria-label="Stop and close player">✕</button></div>
 <dialog id="addd" aria-labelledby="add_t"><div class="fm"><h2 id="add_t">Add books</h2><div class="sb-o"><button data-act="add"><b>Add one book</b><small>Type it in, or scan its barcode to fill in the details</small></button><button data-act="batch"><b>Scan several</b><small>Scan barcodes one after another into your review pile</small></button><button data-act="blopen"><b>Import a list</b><small>Paste or upload a list of ISBNs</small></button></div><div class="row"><button data-act="close">Close</button></div></div></dialog>
-<dialog id="sbd" aria-labelledby="sb_t"><div class="fm"><h2 id="sb_t">Sync &amp; backup</h2><div class="sb-o"><button data-act="od"><b>OneDrive sync</b><small>Connect, sync now or sign out</small></button><button data-act="backup"><b>Backup</b><small>Copy your library as text, or restore from a copy</small></button></div><div class="row"><button data-act="close">Close</button></div></div></dialog>
+<dialog id="sbd" aria-labelledby="sb_t"><div class="fm"><h2 id="sb_t">Sync &amp; backup</h2><div class="sb-o"><button data-act="od"><b>OneDrive sync</b><small>Connect, sync now or sign out</small></button><button data-act="backup"><b>Backup</b><small>Copy your library as text, or restore from a copy</small></button><button data-act="mropen"><b>Neocities page</b><small>Make a read-only bookshelf page you can upload and share</small></button></div><div class="row"><button data-act="close">Close</button></div></div></dialog>
+<dialog id="mrd" aria-labelledby="mr_t"><div class="fm"><h2 id="mr_t">Neocities page</h2><p class="note" style="margin:0">Pick what goes on your public bookshelf: books on the top shelf, audiobooks on the second, graphic novels face out on the bottom. It&rsquo;s a snapshot, so make it again after you add books and upload the new file over the old one.</p><label>Page title<input id="mr_title"></label><div id="mr_list" class="mr-list"></div><div class="row"><button class="pri" id="mr_go" data-act="mrgo">Make the page</button><button data-act="close">Close</button></div></div></dialog>
 <dialog id="amd" aria-labelledby="am_t"><div class="fm"><h2 id="am_t">Matched audiobooks</h2><p id="am_note" class="note" style="margin:0"></p><ul id="am_list" class="ap-list am-list"></ul><div class="row"><button id="am_go" class="pri" data-act="amlink">Link selected</button><button data-act="close">Cancel</button></div></div></dialog>
 <dialog id="bld" aria-labelledby="bl_t"><div class="fm"><h2 id="bl_t">Import a list of ISBNs</h2><p class="note" style="margin:0">Paste your list, or choose a text or CSV file. Anything that isn’t an ISBN is ignored, so extra columns, titles and dashes are fine.</p><textarea id="bl_txt" class="bl-t" placeholder="9780593440940&#10;978-1-250-84736-2&#10;…" aria-label="ISBN list"></textarea><p id="bl_n" class="note" role="status" style="margin:0;font-weight:600"></p><input id="bl_file" type="file" accept=".txt,.csv,.tsv,text/plain,text/csv" class="hide"><div class="row"><button class="pri" data-act="blgo">Add to review pile</button><button data-act="blfile">Choose a file</button><button data-act="close">Cancel</button></div></div></dialog>
 <dialog id="td"><div class="fm" style="text-align:center">
@@ -759,7 +762,7 @@ function cxSpFit(i){if(i.naturalHeight>i.naturalWidth)i.classList.add('rot')}
 function cxFront(b,W,H){const cv=RFS(b.cover),rib=b.status==='reading'?'<i class="cx-r"></i>':'';
  return `<button class="cxf" data-edit="${b.id}" title="${esc(b.title)} by ${esc(b.author)} (audiobook)" style="width:${W}px;height:${H}px"><i class="cxf-h"></i><span class="cxf-c" style="width:${H-10}px;height:${W-18}px;${cv?`background:#2a2430 url('${cv}') center/cover`:`background-color:${col(b)}`}">${cv?'':`<b>${esc(b.title)}</b><small>${esc(b.author||'')}</small>`}</span>${rib}</button>`}
 function ctRnd(s){let h=2166136261;for(const c of String(s))h=Math.imul(h^c.charCodeAt(0),16777619);return()=>{h=Math.imul(h^h>>>15,2246822507);h=Math.imul(h^h>>>13,3266489909);h^=h>>>16;return(h>>>0)/4294967296}}
-function ctPromote(){document.querySelectorAll('.ct').forEach(ct=>{const over=[...ct.querySelectorAll('.cx')].filter(x=>{const s=x.querySelector('span');return s&&txOver(s)});if(!over.length)return;
+function ctPromote(){document.querySelectorAll('.ct').forEach(ct=>{if((+ct.dataset.cw||100)<90)return;const over=[...ct.querySelectorAll('.cx')].filter(x=>{const s=x.querySelector('span');return s&&txOver(s)});if(!over.length)return;
  const RW=ct.offsetWidth,W=Math.round(Math.max(78,Math.min(RW*.94/3*.98,150))),H=Math.round(W*.64),IN=Math.round(RW*.03),AV=RW-2*IN;
  let top=ct.querySelector('.ct-top');if(!top){top=document.createElement('div');top.className='ct-top';ct.appendChild(top)}
  const its=[];over.forEach(x=>{const b=S.books.find(y=>y.id===x.dataset.edit);if(!b)return;const c=x.parentElement;x.remove();c.insertAdjacentHTML('beforeend','<i class="cx-e"></i>');
@@ -954,8 +957,8 @@ let SUN_=0;
 const CASE_R=1.411,STAND_R=1.25,STAND_U=28,STAND_ROWS=[[165,695,415,895,0,0.3,1,0,6],[185,1140,550,1140,0,0,0,0,0],[668,1140,835,1140,0.1,0.1,0,0,0],[720,690,930,497,0,0,0,1,7]];
 const standRows=()=>STAND_ROWS.map(([x1,y1,x2,y2,o,e,end,flat,stack])=>{const len=Math.hypot(x2-x1,y2-y1)/(1000/(SUN_||STAND_U));return{x:x1/10,y:y1/12.5,ang:Math.atan2(y2-y1,x2-x1)*180/Math.PI,len,o,e,end:!!end,flat:!!flat,stack:stack||0,cap:len-o-e}});
 function shelfSizes(hasStand){const ap=$('#app'),cs_=getComputedStyle(ap),aw=Math.max(280,(ap.clientWidth||800)-parseFloat(cs_.paddingLeft)-parseFloat(cs_.paddingRight)-2),maxH=Math.max(480,innerHeight-150);
- if(aw>=860){const W=Math.floor(Math.min((aw-24)*.52,maxH/CASE_R));return{W,SW:Math.floor(Math.min(aw,640)),CW:Math.floor(Math.min(aw-W-24,600)),TW:Math.floor(Math.min((aw-24)*.55,560))}}
- return{W:Math.floor(Math.min(aw,760)),SW:Math.floor(Math.min(aw,640)),CW:Math.floor(Math.min(aw,600)),TW:Math.floor(Math.min(aw,560))}}
+ if(aw>=860){const W=Math.floor(Math.min((aw-24)*.52,maxH/CASE_R));return{aw,W,SW:Math.floor(Math.min(aw,640)),CW:Math.floor(Math.min(aw-W-24,600)),TW:Math.floor(Math.min((aw-24)*.55,560))}}
+ return{aw,W:Math.floor(Math.min(aw,760)),SW:Math.floor(Math.min(aw,640)),CW:Math.floor(Math.min(aw,600)),TW:Math.floor(Math.min(aw,560))}}
 const STACK_SLOTS={0:[[268,731,37],[398,832,37],[333,641,37],[471,751,37],[394,524,37],[520,637,37]],3:[[703,564,-35],[617,479,-35],[528,394,-35],[447,321,-35],[796,443,35],[678,354,35],[569,240,35]]};
 function stackHtml(items,ri){return items.map((it,i)=>{const[x,y,a]=STACK_SLOTS[ri][i];return `<div class="vslot" style="left:${x/10}%;top:${y/12.5}%;transform:translate(-50%,-50%) rotate(${a}deg)">${it.html(11,true)}</div>`}).join('')}
 function mkSmall(list){return list.map(p=>p.kind==='tape'?{w:4.88,wf:4.88,html:(h,flat)=>piece(p,h,flat)}:{w:2.95,wf:6.05,html:(h,flat)=>piece(p,h,flat)})}
@@ -1488,8 +1491,67 @@ function collShelf(name,W){
  for(let u=0;u<units;u++){let cbs='';CUB.forEach((c,idx)=>{const items=fb.res.get(u*NC+idx)||[];cbs+=`<div class="cb" style="left:${c[0]}%;width:${c[1]}%;top:${c[2]}%;height:${c[3]}%">${items.map(i=>i.html(c[5])).join('')}</div>`});cases+=`<div class="bc" style="--u:${px}px;width:${W}px;height:${H}px">${cbs}</div>`}
  const nc=bs.reduce((a,b)=>a+copies(b).length,0);
  return `<section aria-label="${esc(name)} collection shelf"><h2 class="coll-h">${esc(name)}</h2><p class="note coll-n">${bs.length} ${bs.length===1?'book':'books'}, ${nc} ${nc===1?'copy':'copies'}. One spine for each book in each format you own.</p><div class="bcw">${cases}</div></section>`}
+/* ---------- Neocities page: a read-only snapshot of the bookshelf ---------- */
+let MR={off:[],title:'My Bookshelf'},MR_FILE=null;try{Object.assign(MR,JSON.parse(localStorage.getItem('bs-mirror')||'{}'))}catch(e){}
+function mrKeep(){try{localStorage.setItem('bs-mirror',JSON.stringify(MR))}catch(e){}}
+function mrSets(){const own=S.books.filter(b=>!lent(b)),by=(a,b)=>ak(a).localeCompare(ak(b));
+ return[{k:'p',name:'Books',list:own.filter(b=>phys(b)&&!isComic(b)).sort(by)},{k:'a',name:'Audiobooks',list:own.filter(b=>b.formats.includes('audiobook')).sort(by)},{k:'c',name:'Graphic novels',list:own.filter(b=>phys(b)&&isComic(b)).sort(by)}]}
+function mrOpen(){MR_FILE=null;$('#mr_title').value=MR.title||'My Bookshelf';const off=new Set(MR.off||[]);
+ $('#mr_list').innerHTML=mrSets().map(s=>`<details class="mr-sec"><summary><b>${s.name}</b> <span class="meta" data-mrc="${s.k}"></span></summary><div class="mr-all"><button type="button" data-mrall="${s.k}">Select all</button><button type="button" data-mrnone="${s.k}">Select none</button></div>${s.list.map(b=>`<label class="mr-i"><input type="checkbox" data-mr="${s.k}:${b.id}" ${off.has(s.k+':'+b.id)?'':'checked'}><span>${esc(b.title)}</span></label>`).join('')||'<p class="note">None yet.</p>'}</details>`).join('');
+ const go=$('#mr_go');go.dataset.act='mrgo';go.textContent='Make the page';go.disabled=false;mrCount();$('#mrd').showModal()}
+function mrCount(){['p','a','c'].forEach(k=>{const all=[...document.querySelectorAll(`[data-mr^="${k}:"]`)],el=document.querySelector(`[data-mrc="${k}"]`);if(el)el.textContent=`${all.filter(i=>i.checked).length} of ${all.length}`});
+ if(MR_FILE){MR_FILE=null;const go=$('#mr_go');go.dataset.act='mrgo';go.textContent='Make the page'}}
+document.addEventListener('change',e=>{if(e.target.matches&&(e.target.matches('[data-mr]')||e.target.id==='mr_title'))mrCount()});
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-mrall],[data-mrnone]');if(!a)return;const k=a.dataset.mrall||a.dataset.mrnone,on=!!a.dataset.mrall;document.querySelectorAll(`[data-mr^="${k}:"]`).forEach(i=>i.checked=on);mrCount()});
+async function mrImg(v,max){const u=RFS(v);if(!u)return null;
+ try{const bl=await(await fetch(u)).blob(),bm=await createImageBitmap(bl),s=Math.min(1,max/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(bm.width*s));c.height=Math.max(1,Math.round(bm.height*s));c.getContext('2d').drawImage(bm,0,0,c.width,c.height);return{u:c.toDataURL('image/jpeg',.82),w:bm.width,h:bm.height}}
+ catch(e){return /^https:\/\//.test(u)?{u,w:0,h:0}:null}}
+async function mrGo(){MR.off=[...document.querySelectorAll('[data-mr]')].filter(i=>!i.checked).map(i=>i.dataset.mr);MR.title=$('#mr_title').value.trim()||'My Bookshelf';mrKeep();
+ const off=new Set(MR.off),[P,A,C]=mrSets().map(s=>s.list.filter(b=>!off.has(s.k+':'+b.id)));if(!P.length&&!A.length&&!C.length)return toast('Pick at least one book.');
+ const go=$('#mr_go');go.disabled=true;go.textContent='Making the page…';
+ const q=s=>esc(String(s||'')),tt=b=>q(b.title)+(b.author?' by '+q(b.author):''),rib=b=>b.status==='reading'?'<i class="rib"></i>':'';
+ const pH=[],aH=[],cH=[];
+ for(const b of P){const im=b.useSpine&&b.spine?await mrImg(b.spine,360):null,pg=Math.min(+b.pages||300,900),h=Math.round(112+pg/900*38),w=Math.round(16+pg/900*20);
+  pH.push(`<div class="it"><div class="bk${b.formats.includes('hardcover')?' hd':''}" title="${tt(b)}" style="height:${h}px;width:${w}px;${im?`background:#2a2430 url('${im.u}') center/100% 100%`:`background-color:${col(b)}`}">${im?'':`<span>${q(b.title)}</span>`}${rib(b)}</div></div>`)}
+ for(const b of A){const im=b.useSpine&&b.spine?await mrImg(b.spine,360):null;
+  aH.push(`<div class="it"><div class="tp" title="${tt(b)} (audiobook)" style="background-color:${col(b)}">${im?`<i class="sp${im.w>im.h?' r':''}" style="background-image:url('${im.u}')"></i>`:`<i class="lb"></i><span>${q(b.title)}</span>`}${rib(b)}</div></div>`)}
+ for(const b of C){const im=b.cover?await mrImg(b.cover,440):null;
+  cH.push(`<div class="it mg"><div class="cv" title="${tt(b)}" style="${im?`background:#2a2430 url('${im.u}') center/cover`:`background-color:${col(b)}`}">${im?'':`<b>${q(b.title)}</b><small>${q(b.author)}</small>`}${rib(b)}</div></div>`)}
+ const n=new Set([...P,...A,...C].map(b=>b.id)).size,d=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+ const html=`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${q(MR.title)}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#F0E1BE;color:#382514;font-family:Fraunces,Georgia,serif;padding:24px 12px 40px}
+h1{text-align:center;margin:0 0 4px;font-size:clamp(26px,6vw,40px)}.sub{text-align:center;margin:0 0 20px;color:#5E4536;font-size:14px}
+.case{max-width:1000px;margin:0 auto;background:#5E4536;border:4px solid #1b1420;border-radius:10px;padding:14px;box-shadow:8px 10px 0 rgba(0,0,0,.22)}
+.back{background:#3a2516;border:3px solid #1b1420;border-radius:4px;overflow:hidden}
+.sh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:center;padding:0 10px;background-image:linear-gradient(to bottom,transparent calc(var(--r) - 18px),#1b1420 calc(var(--r) - 18px),#1b1420 calc(var(--r) - 15px),#9A7A62 calc(var(--r) - 15px),#9A7A62 calc(var(--r) - 5px),#7d5f48 calc(var(--r) - 5px));background-size:100% var(--r)}
+.it{position:relative;height:var(--r);display:flex;align-items:flex-end;padding-bottom:18px}
+.b1{--r:178px}.b2{--r:150px}.b3{--r:196px;background-image:linear-gradient(to bottom,transparent calc(var(--r) - 50px),#1b1420 calc(var(--r) - 50px),#1b1420 calc(var(--r) - 47px),#9A7A62 calc(var(--r) - 47px),#9A7A62 calc(var(--r) - 8px),#7d5f48 calc(var(--r) - 8px))}.sh+.sh{border-top:6px solid #1b1420}
+.bk{position:relative;margin:0 1px;border:1.5px solid #1b1420;border-radius:2px 2px 1px 1px;overflow:hidden;display:flex;align-items:center;justify-content:center;background-image:linear-gradient(90deg,rgba(255,255,255,.18),rgba(255,255,255,0) 30%,rgba(0,0,0,.18))}
+.bk.hd{border-top-width:4px;border-bottom-width:4px}
+.bk span,.tp span{writing-mode:vertical-rl;font-weight:500;font-size:11px;line-height:1.05;color:#F7ECD9;text-shadow:0 1px 0 rgba(27,20,32,.7);max-height:94%;overflow:hidden;text-align:center}
+.tp{position:relative;width:26px;height:118px;margin:0 1px;border:1.5px solid #1b1420;border-radius:3px;overflow:hidden;display:flex;align-items:center;justify-content:center;background-image:linear-gradient(90deg,rgba(255,255,255,.28) 0 18%,transparent 18% 75%,rgba(0,0,0,.22) 75%)}
+.tp .lb{position:absolute;left:0;right:0;top:0;height:7%;background:rgba(235,240,240,.75);border-bottom:1.5px solid #1b1420}
+.tp .sp{position:absolute;inset:0;background:center/100% 100%}.tp .sp.r{inset:auto;left:50%;top:50%;width:118px;height:26px;transform:translate(-50%,-50%) rotate(90deg)}
+.mg{padding:0 7px 22px}.mg::after{content:"";position:absolute;left:0;right:0;bottom:8px;height:42px;background:#9A7A62;border-top:3px solid #1b1420;z-index:1}
+.cv{width:112px;height:164px;border:2.5px solid #1b1420;border-radius:3px;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px 0;text-align:center;box-shadow:3px 4px 0 rgba(0,0,0,.28)}
+.cv b{font-size:14px;line-height:1.1;color:#F8DD94;text-shadow:0 1px 0 #1b1420}.cv small{font-size:10px;color:#F0E1BE}
+.rib{position:absolute;top:-3px;right:3px;width:6px;height:34px;background:#F8DD94;border:1px solid #1b1420;z-index:2;clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%)}
+.ft{text-align:center;font-size:12px;color:#5E4536;margin-top:18px}
+@media(max-width:520px){.cv{width:84px;height:124px}.cv b{font-size:12px}.b3{--r:152px}}
+</style></head><body>
+<h1>${q(MR.title)}</h1><p class="sub">${n} ${n===1?'book':'books'} · updated ${d}</p>
+<div class="case"><div class="back">${pH.length?`<div class="sh b1" aria-label="Books">${pH.join('')}</div>`:''}${aH.length?`<div class="sh b2" aria-label="Audiobooks">${aH.join('')}</div>`:''}${cH.length?`<div class="sh b3" aria-label="Graphic novels">${cH.join('')}</div>`:''}</div></div>
+<p class="ft">A yellow ribbon marks what I'm reading now.</p>
+</body></html>`;
+ MR_FILE=new File([html],'bookshelf.html',{type:'text/html'});go.disabled=false;go.dataset.act='mrsave';go.textContent='Save bookshelf.html';
+ toast(`Ready: ${n} ${n===1?'book':'books'}, ${Math.max(1,Math.round(html.length/1024))} KB. Tap Save bookshelf.html.`)}
+async function mrSave(){const f=MR_FILE;if(!f)return;
+ if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f]});return}catch(e){if(e&&e.name==='AbortError')return}}
+ const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},5000);toast('Saved bookshelf.html. Upload it to Neocities.')}
 function vShelf(){
- const [bg,sm,cm]=streams(),fb=flow(bg,BIG),{W,SW,CW,TW}=shelfSizes(sm.length>0);SUN_=STAND_U;const stands=flowStand(sm),rows=standRows();
+ const [bg,sm,cm]=streams(),fb=flow(bg,BIG),{aw,W,SW,CW,TW}=shelfSizes(sm.length>0);SUN_=STAND_U;const stands=flowStand(sm),rows=standRows();
  const maxcb=Math.max(0,...S.trinkets.map(t=>t.cb||0)),units=Math.max(1,Math.ceil((fb.last+1)/BIG.length),Math.floor(maxcb/NC)+1);
  const H=Math.round(W*CASE_R),px=(W/24).toFixed(3),SH=Math.round(SW*STAND_R),su=(SW/SUN_).toFixed(3);
  let cases='';
@@ -1500,11 +1562,11 @@ function vShelf(){
    let acc=0,sp=items.length;for(let i=0;i<items.length;i++){if(acc>=tot/2){sp=i;break}acc+=items[i].w}
    cbs+=`<div class="cb" style="left:${c[0]}%;width:${c[1]}%;top:${c[2]}%;height:${c[3]}%">${[...L,...hh.slice(0,sp),...M,...hh.slice(sp),...R].join('')}</div>`});
   cases+=`<div class="bc" style="--u:${px}px;width:${W}px;height:${H}px">${cbs}</div>`}
- const RW=Math.round(Math.max(280,Math.min(560,($('#app').clientWidth||400)-24))),rkHtml=Array.from({length:Math.ceil(cm.length/MG_N)},(_,k)=>rackHtml(cm.slice(k*MG_N,(k+1)*MG_N),RW,k)).join('');
+ const APW=Math.max(260,Math.min(aw-4,1140)),nRk=Math.ceil(cm.length/MG_N),RW=nRk>1?Math.floor((APW-12)/2):Math.round(Math.min(560,APW)),rkHtml=Array.from({length:nRk},(_,k)=>rackHtml(cm.slice(k*MG_N,(k+1)*MG_N),RW,k)).join('');
  const byG=(a,b)=>ak(a).localeCompare(ak(b)),auds=S.books.filter(b=>!collOf(b)&&!lent(b)&&b.formats.includes('audiobook')).sort(byG),ebs=S.books.filter(b=>!collOf(b)&&!lent(b)&&b.formats.includes('ebook'));
  const stHtml=stands.map(st=>`<div class="vs" role="group" aria-label="Audiobooks and ebooks" style="--u:${su}px;width:${SW}px;height:${SH}px">${st.map((items,ri)=>{const r=rows[ri];if(r.stack)return stackHtml(items,ri);return items.length?`<div class="vr" style="left:${r.x}%;top:${r.y}%;width:calc(var(--u)*${r.len.toFixed(2)});transform:rotate(${r.ang.toFixed(1)}deg)"><div class="vi" style="${r.end?`right:calc(var(--u)*${r.e});flex-direction:row-reverse`:`left:calc(var(--u)*${r.o})`}${r.flat&&!r.stack?';transform:translateY(50%)':''}">${r.stack?`<div class="sk" style="margin-left:calc(var(--u)*${((r.len-4.8)/2).toFixed(2)})">${items.slice(0,4).map(i=>i.html(11,true)).join('')}${items.length>4?`<div class="sk2">${items.slice(4).map(i=>i.html(11,true)).join('')}</div>`:''}</div>`:items.map(i=>i.html(11,r.flat)).join('')}</div></div>`:''}).join('')}<div class="vs-fg"></div></div>`).join('');
  $('#app').innerHTML=`<div class="bar"><label class="pri" style="flex:1 1 140px;text-align:center;cursor:pointer;border-radius:999px;padding:6px 14px;background:var(--accent);color:var(--on);font-size:15px">Add a picture frame<input id="tfile" type="file" accept="image/*" class="hide"></label></div>
- <div class="bcw">${cases}${auds.length?ctHtml(auds,CW):''}${ebs.length?tvHtml(ebs,TW):''}${rkHtml}</div>${colls().map(c=>collShelf(c,W)).join('')}
+ <div class="bcw">${cases}${auds.length&&ebs.length?(()=>{const pw=Math.min(APW,1000),cw2=Math.floor((pw-12)*.58);return `<div class="pair">${ctHtml(auds,cw2)}${tvHtml(ebs,pw-12-cw2)}</div>`})():`${auds.length?ctHtml(auds,CW):''}${ebs.length?tvHtml(ebs,TW):''}`}${nRk>1?`<div class="pair">${rkHtml}</div>`:rkHtml}</div>${colls().map(c=>collShelf(c,W)).join('')}
  <p class="note">Print books fill the bookcase in alphabetical order. Comics go on the magazine rack, audiobooks on the cassette rack and ebooks on the TV. A yellow ribbon marks what you're reading now. Tap a picture frame to move it. Collections get their own shelf below, with one spine per format; Wizard of Oz books go on the emerald sculpture.</p>`;
  $('#tfile').onchange=addTrinket;fitTitles();ctPromote()
 }
@@ -1563,7 +1625,7 @@ document.addEventListener('click',e=>{
   if(a==='sb')$('#sbd').showModal();if((a==='od'||a==='backup')&&$('#sbd').open)$('#sbd').close();
   if(a==='add')openBook();if(a==='batch')bsOpen();if(a==='bsdone'){bsStop();$('#bsd').close();view='review';render()}if(a==='bsadd'){bsSeen.delete($('#bs_isbn').value.replace(/[^0-9Xx]/g,'').toUpperCase());bsAddIsbn($('#bs_isbn').value,'typed');$('#bs_isbn').value=''}if(a==='bsphoto')$('#bs_file').click();if(a==='blopen'){blCount();$('#bld').showModal()}if(a==='blfile')$('#bl_file').click();if(a==='blgo')blGo();if(a==='revretry'){bsRetry();bsWork()}if(a==='revall')revAdd(S.review.filter(r=>r.status==='ready').map(r=>r.id));if(a==='ddedit'){$('#dd').close();openBook(detId)}if(a==='od'){$('#o_cid').value=localStorage.getItem('bs-cid')||'';$('#o_auth').value=localStorage.getItem('bs-auth')||'common';$('#o_st').textContent=$('#cs').textContent;$('#o_ru').textContent=RU();$('#odd').showModal()}if(a==='oconn')oConn();if(a==='osync')pull();if(a==='oout')oOut();if(a==='oreset')oReset();
   if(a==='save')saveBook();if(a==='scan')scan();if(a==='lookup')lookup();if(a==='scstop')scStop();if(a==='scphoto'){scStop();$('#sc_file').click()}if(a==='rmcov'){pend.cov='';imgNote()}if(a==='rmsp'){pend.sp='';F('usesp').checked=false;imgNote()}
-  if(a==='close')x.closest('dialog').close();if(a==='edadd')openEd();if(a==='edsave')edSave();if(a==='eddel')edDel(x);if(a==='edrmcov'){edPend='';edImg()}
+  if(a==='close')x.closest('dialog').close();if(a==='mropen'){if($('#sbd').open)$('#sbd').close();mrOpen()}if(a==='mrgo')mrGo();if(a==='mrsave')mrSave();if(a==='edadd')openEd();if(a==='edsave')edSave();if(a==='eddel')edDel(x);if(a==='edrmcov'){edPend='';edImg()}
   if(a==='aplisten'){$('#dd').close();apOpen(detId)}if(a==='aplink'){$('#dd').close();abOpen(detId)}
   if(a==='appp')apPP();if(a==='apback')apSeek(-30);if(a==='apfwd')apSeek(30);if(a==='apprev')apPrev();if(a==='apnext')apJump(AP.i+1);
   if(a==='apstop')apStop();if(a==='pvhid'){PVH=!PVH;render()}if(a==='gdrop'){let n_=0;S.books.forEach(b=>{if(gOff(b).length){b.genres=b.genres.filter(g=>GALL.includes(g));n_++}});save();render();toast(`Removed unlisted genres from ${n_} ${n_===1?'book':'books'}.`)}if(a==='apopen'){view='player';render();apList()}if(a==='apdet')openDet(AP.id);
